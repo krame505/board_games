@@ -24,8 +24,13 @@ class Game:
 
     # Main driver for playing games
     def play(self, players, verbose = False):
+        # Initialize player numbers if not initialized already
+        old_nums = [p.num for p in players]
         for i, p in enumerate(players):
-            p.num = i + 1
+            if p.num == None:
+                p.num = i + 1
+        players.sort(key = lambda p: p.num)
+
         board = self.board
         turn = 0
         num_players = len(players)
@@ -34,10 +39,10 @@ class Game:
         while num_players > 1:
             player = players[turn]
             # If the player is still in the game
-            if player:
+            if player.num != None:
                 # Check if the player has lost
                 if self.lost(board, player.num):
-                    players[turn] = None
+                    players[turn].num = None
                     num_players -= 1
                 else:
                     # Get a move and update the board
@@ -49,9 +54,17 @@ class Game:
                     board = board.move(move)
             # Advance the turn
             turn = (turn + 1) % len(players)
+
+        # Find the winner number
+        winner = [p.num for p in players if p.num != None][0]
         if verbose:
-            print("Player", [p for p in players if p][0].num, "won!")
+            print("Player", winner, "won!")
             print(board)
-        return [p for p in players if p][0].num
+
+        # Restore old player numbers
+        for p, n in zip(players, old_nums):
+            p.num = n
+
+        return winner
 
         
