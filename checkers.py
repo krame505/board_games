@@ -3,28 +3,27 @@ from checker import *
 import math
 
 class Checkers(Game):
-    def __init__(self, player1, player2, size = 8):
-        player1.num = 1
-        player2.num = 2
-        players = [player1, player2]
+    def __init__(self, size = 8):
+        super().__init__(size, 2)
+
+    def pieces(self):
         pieces = {}
-        for i in range(int(math.log2(size))):
-            for j in range(0, size, 2):
-                if size % 2 != 0:
+        for i in range(int(math.log2(self.size))):
+            for j in range(0, self.size, 2):
+                if self.size % 2 != 0:
                     if i % 2:
-                        if j < size - 1:
-                            pieces[i, j + 1] = Checker(player1, 'DOWN')
-                            pieces[size - i - 1, j + 1] = Checker(player2, 'UP')
+                        if j < self.size - 1:
+                            pieces[i, j + 1] = Checker(1, 'DOWN')
+                            pieces[self.size - i - 1, j + 1] = Checker(2, 'UP')
                     else:
-                        pieces[i, j] = Checker(player1, 'DOWN')
-                        pieces[size - i - 1, j] = Checker(player2, 'UP')
+                        pieces[i, j] = Checker(1, 'DOWN')
+                        pieces[self.size - i - 1, j] = Checker(2, 'UP')
                 elif i % 2:
-                    pieces[i, j + 1] = Checker(player1, 'DOWN')
-                    pieces[size - i - 1, j] = Checker(player2, 'UP')
+                    pieces[i, j + 1] = Checker(1, 'DOWN')
+                    pieces[self.size - i - 1, j] = Checker(2, 'UP')
                 else:
-                    pieces[i, j] = Checker(player1, 'DOWN')
-                    pieces[size - i - 1, j + 1] = Checker(player2, 'UP')
-        super().__init__(size, pieces, players)
+                    pieces[i, j] = Checker(1, 'DOWN')
+                    pieces[self.size - i - 1, j + 1] = Checker(2, 'UP')
 
     def lost(self, board, player_num):
         return len(board.moves(player_num)) == 0

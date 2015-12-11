@@ -157,18 +157,20 @@ class MinMaxSearchPlayer(Player):
         if self.dynamic_depth:
             while elapsed < 3:
                 self.max_depth += 1
-                print("Increasing depth to", self.max_depth)
+                if verbose:
+                    print("Increasing depth to", self.max_depth)
                 start = time.time()
                 score, move = minmax(board, self.max_depth, self.calc_score, self.heuristic, self.terminal, self.num, self.opponent, self.parallelize)
                 elapsed = time.time()
                 elapsed = elapsed - start
             if elapsed > 15:
                 self.max_depth -= 1
-                print("Decreasing depth to", self.max_depth)
+                if verbose:
+                    print("Decreasing depth to", self.max_depth)
 
         if verbose:
             for x, y in move.captured:
-                print(self, "captured", board[x, y], "at", chr(ord('A') + x) + str(y + 1))
+                print(self, "Captured", board[x, y], "at", chr(ord('A') + x) + str(y + 1))
             print("Score:", score)
 
         self.prev_score = score

@@ -10,13 +10,6 @@ import sys
 import random
 import json
 
-def init_board():
-    p1 = RandomizedPlayer()
-    p2 = RandomizedPlayer()
-    game = Chesskers(p1, p2)
-    board = game.board
-    return p1, p2, game, board
-
 if __name__ == '__main__':
     # Initialization
     # Read the number of training cases to generate and any already in the file
@@ -35,7 +28,10 @@ if __name__ == '__main__':
     training_data[1] = training_data[1][:size]
 
     # Generate new training sets until the size target is reached
-    p1, p2, game, board = init_board()
+    p1 = RandomizedPlayer(1)
+    p2 = RandomizedPlayer(2)
+    game = Chesskers()
+    board = game.board
     while len(training_data[0]) < size:
         # Calculate the score of the board with monte carlo trials, add it to the training pool
         training_data[0].append(trainedminmax.board_to_inputs(board))
@@ -45,11 +41,11 @@ if __name__ == '__main__':
         board = board.move(p1.get_move(board))
         if game.lost(board, 2) or len(board.moves(1)) == 0 or len(board.moves(2)) == 0:
             print("Finished game")
-            p1, p2, game, board = init_board()
+            board = game.board
         board = board.move(p2.get_move(board))
         if game.lost(board, 1) or len(board.moves(1)) == 0 or len(board.moves(2)) == 0:
             print("Finished game")
-            p1, p2, game, board = init_board()
+            board = game.board
 
         # Every 10 elements, print the status and save to the training data file
         if len(training_data[0]) % 10 == 0:

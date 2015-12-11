@@ -2,23 +2,16 @@
 
 from player import *
 from heuristicminmax import *
+from chesskers import Chesskers
+
 import random
 import multiprocessing
 
 # Play a game starting from the given board
 def run_trial(board, player_1, player_2):
-    for j in range(1000):
-        if board.game.lost(board, player_1.num):
-            return 1
-        elif len(board.moves(player_1.num)) == 0:
-            return 0
-        board = board.move(player_1.get_move(board))
-        if board.game.lost(board, player_2.num):
-            return -1
-        elif len(board.moves(player_2.num)) == 0:
-            return 0
-        board = board.move(player_2.get_move(board))
-    return 0
+    game = Chesskers()
+    result = game.play([player_1, player_2])
+    return 1 if result == player_2.num else -1
 
 # Worker function unpacks arguments and calls score
 def worker(arg):

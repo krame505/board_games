@@ -42,5 +42,5 @@ if __name__ == '__main__':
     player1 = get_player(player1_type)
     player2 = get_player(player2_type)
 
-    game = Checkers(player1, player2)
-    game.play(True)
+    game = Checkers()
+    game.play([player1, player2], True)

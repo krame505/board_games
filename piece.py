@@ -9,9 +9,6 @@ class Piece:
     colors = ['green', 'cyan', 'magenta', 'blue', 'yellow']
 
     def __init__(self, name, label, player):
-        if isinstance(player, Player):
-            player = player.num
-
         self.name = name
         self.label = label
         self.color = None#Piece.colors[player_num - 1]

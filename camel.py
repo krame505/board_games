@@ -1,10 +1,10 @@
 from piece import *
 
 class Camel(Piece):
-    def __init__(self, player):
+    def __init__(self, player_num):
         name = 'camel'
-        label = '♞' if player.num == 1 else '♘'
-        super().__init__(name, label, player)
+        label = '♞' if player_num == 1 else '♘'
+        super().__init__(name, label, player_num)
 
     def moves(self, board):
         if not board.on_board(self):

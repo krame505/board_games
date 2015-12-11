@@ -40,16 +40,15 @@ def mutate(scores):
 
 # Play a match between players
 def match(player1, player2):
-    game1 = Chesskers(player1, player2)
-    res1 = game1.play()
-    return res1.num
-    # game2 = Chesskers(player2, player1)
-    # res2 = game2.play()
-    # if res1.num == res2.num:
-    #     return res1.num
+    game = Chesskers()
+    res1 = game.play([player1, player2])
+    return res1
+    # res2 = game.play([player2, player1])
+    # if res1 == res2:
+    #     return res1
     # else:
-    #     res3 = game1.play().num
-    #     return res3.num
+    #     res3 = game.play([player1, player2])
+    #     return res3
 
 # Process worker, performs a single genetic optimization (can't do more due to memory leakage)
 def run_genetic(pool_file, lock):

@@ -7,21 +7,26 @@ from copy import copy
 class Game:
     __metaclass__ = ABCMeta
 
-    def __init__(self, size, pieces, players):
+    def __init__(self, size, num_players):
         self.size = size
-        self.pieces = pieces
-        self.players = players
-        self.board = Board(size, self, pieces)
+        self.num_players = num_players
+        self.board = Board(size, self, self.pieces())
     
     # Check if the game has been lost by a player
     @abstractmethod
     def lost(self, board, player_num):
         pass
 
+    # Get the initial pieces
+    @abstractmethod
+    def pieces(self):
+        pass
+
     # Main driver for playing games
-    def play(self, verbose = False):
+    def play(self, players, verbose = False):
+        for i, p in enumerate(players):
+            p.num = i + 1
         board = self.board
-        players = copy(self.players)
         turn = 0
         num_players = len(players)
 

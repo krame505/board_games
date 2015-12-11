@@ -1,14 +1,14 @@
 from piece import *
 
 class Checker(Piece):
-    def __init__(self, player, direction, promotions = None):
+    def __init__(self, player_num, direction, promotions = None):
         if promotions == None:
-            promotions = [CheckerKing(player)]
+            promotions = [CheckerKing(player_num)]
         self.direction = direction
         self.promotions = promotions
         name = 'checker'
-        label = '⛂' if player.num == 1 else '⛀'
-        super().__init__(name, label, player)
+        label = '⛂' if player_num == 1 else '⛀'
+        super().__init__(name, label, player_num)
 
     #move_cache = {}
     def moves(self, board):
@@ -76,10 +76,10 @@ class Checker(Piece):
         return result
 
 class CheckerKing(Piece):
-    def __init__(self, player):
+    def __init__(self, player_num):
         name = 'checker king'
-        label = '⛃' if player.num == 1 else '⛁'
-        super().__init__(name, label, player)
+        label = '⛃' if player_num == 1 else '⛁'
+        super().__init__(name, label, player_num)
 
     def moves(self, board):
         if not board.on_board(self):
