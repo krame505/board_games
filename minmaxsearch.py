@@ -153,12 +153,12 @@ class MinMaxSearchPlayer(Player):
         score, move = minmax(board, self.max_depth, self.calc_score, self.heuristic, self.terminal, self.num, self.opponent, self.parallelize)
         elapsed = time.time()
         elapsed = elapsed - start
-
+        
         if self.dynamic_depth:
-            while elapsed < 3:
+            if elapsed < 3:
                 self.max_depth += 1
                 if verbose:
-                    print("Increasing depth to", self.max_depth)
+                    print("Took", "{0:.2f}".format(elapsed), "sec, increasing depth to", self.max_depth)
                 start = time.time()
                 score, move = minmax(board, self.max_depth, self.calc_score, self.heuristic, self.terminal, self.num, self.opponent, self.parallelize)
                 elapsed = time.time()
@@ -166,7 +166,7 @@ class MinMaxSearchPlayer(Player):
             if elapsed > 15:
                 self.max_depth -= 1
                 if verbose:
-                    print("Decreasing depth to", self.max_depth)
+                    print("Took", "{0:.2f}".format(elapsed), "sec, decreasing depth to", self.max_depth)
 
         if verbose:
             for x, y in move.captured:
