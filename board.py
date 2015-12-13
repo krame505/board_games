@@ -5,6 +5,9 @@ from termcolor import colored
 Move = namedtuple('Move', 'fromX fromY toX toY captured promotion')
 
 class Board:
+    """Data structure for storing a board state, non-mutable.  Holds pieces in a dict, also has a
+    referenct to the game.  """
+
     def __init__(self, size, game, pieces = {}, prev_states = set()):
         self.size = size
         self.game = game

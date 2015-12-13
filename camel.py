@@ -1,6 +1,7 @@
 from piece import *
 
 class Camel(Piece):
+    """Implementation of camel piece, moves like chess knight, except 3x1 instead of 2x1 moves"""
     def __init__(self, player_num):
         name = 'camel'
         label = '♞' if player_num == 1 else '♘'

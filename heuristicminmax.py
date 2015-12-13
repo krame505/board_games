@@ -1,10 +1,10 @@
-# Min-max search player that uses pre-coded weights for indices and piece types for the heuristic
 
 from minmaxsearch import *
 import random
 import json
 
 class HeuristicMinMaxSearchPlayer(MinMaxSearchPlayer):
+    """Min-max search player that uses pre-coded weights for indices and piece types for the heuristic"""
     def __init__(self, max_depth = 4, weights = 'scoring.json', randomize = 0, parallelize = True, dynamic_depth = True, num = None):
         if weights == 'default':
             checker_weights = [[4, 4, 4, 4, 4, 4, 4, 4],

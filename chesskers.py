@@ -5,6 +5,8 @@ from camel import *
 import math
 
 class Chesskers(Game):
+    """Implementation of chesskers game"""
+
     def __init__(self):
         size = 8
         super().__init__(size, 2)

@@ -1,4 +1,4 @@
-# Player that uses monte carlo trials based on playing semi-random min-max heruristic games for scoring
+"""Collection of functions for the Monte Carlo player"""
 
 from player import *
 from heuristicminmax import *
@@ -7,18 +7,18 @@ from chesskers import Chesskers
 import random
 import multiprocessing
 
-# Play a game starting from the given board
 def run_trial(board, player_1, player_2):
+    """Play a trial game starting from the given board"""
     game = Chesskers()
     result = game.play([player_1, player_2])
     return 1 if result == player_2.num else -1
 
-# Worker function unpacks arguments and calls score
 def worker(arg):
+    """Worker function unpacks arguments and calls run_trial"""
     return run_trial(*arg)
 
-# Score a board by running trials repeatedly
 def score(board, num, max_depth, randomize, num_trials):
+    """Score a board by running trials repeatedly"""
     opponent = 1 if num == 2 else 2
     player_1 = HeuristicMinMaxSearchPlayer(max_depth, 'default', randomize, False, False, opponent)
     player_2 = HeuristicMinMaxSearchPlayer(max_depth, 'default', randomize, False, False, num)
@@ -29,6 +29,8 @@ def score(board, num, max_depth, randomize, num_trials):
     return sum(result)
 
 class MonteCarloPlayer(Player):
+    """Player that uses monte carlo trials based on playing semi-random min-max heruristic games for scoring"""
+
     def __init__(self, max_depth = 1, randomize = 5, num_trials = 10, num = None):
         self.max_depth = max_depth
         self.randomize = randomize

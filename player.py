@@ -1,8 +1,7 @@
-# Common superclass for all players
-
 from abc import ABCMeta, abstractmethod
 
 class Player:
+    """Common abstract base class for players"""
     __metaclass__ = ABCMeta
 
     def __init__(self, num = None):

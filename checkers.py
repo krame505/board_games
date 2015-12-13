@@ -3,6 +3,8 @@ from checker import *
 import math
 
 class Checkers(Game):
+    """Implementation of checkers game"""
+
     def __init__(self, size = 8):
         super().__init__(size, 2)
 

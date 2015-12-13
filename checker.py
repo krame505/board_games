@@ -1,6 +1,8 @@
 from piece import *
 
 class Checker(Piece):
+    """Implementation of checker piece"""
+
     def __init__(self, player_num, direction, promotions = None):
         if promotions == None:
             promotions = [CheckerKing(player_num)]
@@ -76,6 +78,8 @@ class Checker(Piece):
         return result
 
 class CheckerKing(Piece):
+    """Implementation of checker king piece"""
+
     def __init__(self, player_num):
         name = 'checker king'
         label = '⛃' if player_num == 1 else '⛁'

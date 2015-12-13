@@ -1,4 +1,4 @@
-# Min-max search player that uses a support vector machine for the scoring heuristic
+"""Collection of functions for the SVM-based player"""
 
 from minmaxsearch import *
 
@@ -6,10 +6,11 @@ import random
 import json
 import pickle
 
-# Convert a board to an 'input vector' list for the SVM
-# Includes 1s and 0s for presence or absence of each piece for each player for each location, as well
-# as total counts of each type of piece for each player
 def board_to_inputs(board):
+    """Convert a board to an 'input vector' list for the SVM
+    Includes 1s and 0s for presence or absence of each piece for each player for each location, as well
+    as total counts of each type of piece for each player"""
+
     players = [1, 2]
     pieces = ['checker', 'checker king', 'camel', 'bishop']
     result = {(player, piece): {(i, j): 0
@@ -32,6 +33,8 @@ def board_to_inputs(board):
              for piece in pieces])
 
 class TrainedMinMaxSearchPlayer(MinMaxSearchPlayer):
+    """Minmax search player that uses a support vector machine for the scoring heuristic"""
+
     def __init__(self, max_depth = 4, scoring_svm = None, randomize = 0, parallelize = True, dynamic_depth = True, num = None):
         # If no scoring svm is provided, try to load the pickled one
         # If that fails, try to run training
@@ -59,17 +62,18 @@ class TrainedMinMaxSearchPlayer(MinMaxSearchPlayer):
         self.scoring_svm = scoring_svm
         super().__init__(max_depth, randomize, parallelize, dynamic_depth, num)
 
-    # Appply the svm to the inputs
     def score(self, board):
+        """Apply the svm to the inputs"""
         res = self.scoring_svm.predict([board_to_inputs(board)])[0]
         if self.num == 1:
             return res
         else:
             return -res
 
-    # Node ordering heruistic, apply the SVM for the first 2 levels.  After that running the SVM is
-    # slower than the speed-up over the default heuristic of the number of pieces each player has
     def heuristic(self, board, depth):
+        """Node ordering heruistic, apply the SVM for the first 2 levels.  After that running the
+        SVM is slower than the speed-up over the default heuristic of the number of active pieces
+        each player owns"""
         if depth > self.max_depth - 2:
             return self.score(board)
         else:

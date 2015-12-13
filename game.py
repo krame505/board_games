@@ -1,10 +1,10 @@
-# Common superclass for games
 from board import *
 
 from abc import ABCMeta, abstractmethod
 from copy import copy
 
 class Game:
+    """Common abstract base class for games"""
     __metaclass__ = ABCMeta
 
     def __init__(self, size, num_players):

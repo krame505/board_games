@@ -4,6 +4,8 @@ from player import Player
 from abc import ABCMeta, abstractmethod
 
 class Piece:
+    """Common abstract base class for pieces"""
+
     __metaclass__ = ABCMeta
 
     colors = ['green', 'cyan', 'magenta', 'blue', 'yellow']

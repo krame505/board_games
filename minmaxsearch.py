@@ -1,5 +1,3 @@
-# Superclass of alpha-beta minmax search players, children have different scoring functions
-
 from player import *
 from board import *
 
@@ -9,8 +7,9 @@ import multiprocessing
 import time
 from queue import PriorityQueue, Queue
 
-# minmax wrapper, also performs first max-search parallelized if enabled
 def minmax(state, depth, score, heuristic, terminal, player1, player2, parallelize = True):
+    """minmax wrapper, also performs first max-search parallelized if enabled"""
+
     # Call max_value if no parallelization
     if not parallelize:
         return max_value(state, float('-inf'), float('inf'), depth, score, heuristic, terminal, player1, player2)
@@ -72,8 +71,9 @@ def minmax(state, depth, score, heuristic, terminal, player1, player2, paralleli
 
     return v, opt
 
-# Max portion of minmax search
 def max_value(state, alpha, beta, depth, score, heuristic, terminal, player1, player2):
+    """Max portion of minmax search"""
+
     # Search base case
     opt = Move(-1, -1, -1, -1, [], "No move:\n" + str(state))
     if depth <= 0 or terminal(state):
@@ -91,8 +91,8 @@ def max_value(state, alpha, beta, depth, score, heuristic, terminal, player1, pl
         alpha = max(alpha, v)
     return v, opt
 
-# Min portion of minmax search
 def min_value(state, alpha, beta, depth, score, heuristic, terminal, player1, player2):
+    """Min portion of minmax search"""
     # Search base case
     opt = Move(-1, -1, -1, -1, [], "No move:\n" + str(state))
     if depth <= 0 or terminal(state):
@@ -110,8 +110,8 @@ def min_value(state, alpha, beta, depth, score, heuristic, terminal, player1, pl
         beta = min(beta, v)
     return v, opt
 
-# Abstract base class for minmax search players
 class MinMaxSearchPlayer(Player):
+    """Abstract base class for minmax search players, children have different scoring functions"""
     __metaclass__ = ABCMeta
 
     def __init__(self, max_depth = 5, randomize = 0, parallelize = True, dynamic_depth = True, num = None):
@@ -121,20 +121,20 @@ class MinMaxSearchPlayer(Player):
         self.dynamic_depth = dynamic_depth
         super().__init__(num)
 
-    # Terminal scoring function
     @abstractmethod
     def score(self, board):
+        """Abstract terminal scoring function"""
         raise NotImplementedError
 
-    # Node ordering heurisitic, should usually be overridden.  Can be the same as score() if fast enough
-    # Depth is provided so a better but slower method can be used higher in the tree, then switch to a
-    # slower one further down where it doesn't matter.  By default, it is just the difference in the
-    # number of pieces each player has
     def heuristic(self, board, depth):
+        """Node ordering heurisitic, should usually be overridden.  Can be the same as score() if fast enough
+        Depth is provided so a better but slower method can be used higher in the tree, then switch to a
+        slower one further down where it doesn't matter.  By default, it is just the difference in the
+        number of pieces each player has"""
         return len(board.active_pieces(self.num)) - len(board.active_pieces(self.opponent))
 
-    # Wrapper for score function that adds checks for immediate win/loss and randomization
     def calc_score(self, board):
+        """Wrapper for score function that adds checks for immediate win/loss and randomization"""
         if board.game.lost(board, self.num):
             return float('-inf')
         elif board.game.lost(board, self.opponent):
@@ -143,10 +143,12 @@ class MinMaxSearchPlayer(Player):
             return self.score(board) + random.randint(-self.randomize, self.randomize)
 
     def terminal(self, board):
+        """Checks if the board's game has been won"""
         return board.game.lost(board, self.num) or board.game.lost(board, self.opponent)
 
-    # Implements alpha-beta search
     def get_move(self, board, verbose = False):
+        """Implements alpha-beta search"""
+
         self.opponent = 1 if self.num == 2 else 2
 
         start = time.time()

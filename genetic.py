@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Genetic optimization script for heurstic player
+"""Genetic optimization script for heurstic player"""
 
 from chesskers import *
 from heuristicminmax import *
@@ -12,8 +12,9 @@ import random
 import json
 from queue import LifoQueue
 
-# Perform a mutation on a board state
 def mutate(scores):
+    """Perform a mutation on a board state"""
+
     new_weights = copy.deepcopy(scores)
     entry = new_weights[random.choice(list(scores.keys()))]
     w = entry[0]

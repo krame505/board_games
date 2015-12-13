@@ -1,6 +1,8 @@
 from piece import *
 
 class Bishop(Piece):
+    """Implementation of bishop piece, moves like chess bishop"""
+
     def __init__(self, player_num):
         name = 'bishop'
         label = '♝' if player_num == 1 else '♗'

@@ -4,6 +4,8 @@ from board import *
 import random
 
 class RandomizedPlayer(Player):
+    """Player that makes random moves"""
+
     def __init__(self, num = None):
         super().__init__(num)
 

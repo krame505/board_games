@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Generates training data for the SVM player by performing monte carlo simulations
+"""Generates training data for the SVM player by performing monte carlo simulations"""
 
 from chesskers import *
 from randomized import *
@@ -13,7 +13,7 @@ import json
 if __name__ == '__main__':
     # Initialization
     # Read the number of training cases to generate and any already in the file
-    size = 2000
+    size = 10000
     if len(sys.argv) > 1:
         size = int(sys.argv[1])
     print("Generating", size, "training cases...")
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     while len(training_data[0]) < size:
         # Calculate the score of the board with monte carlo trials, add it to the training pool
         training_data[0].append(trainedminmax.board_to_inputs(board))
-        training_data[1].append(montecarlo.score(board, 1, 1, 5, 50)) # score(board, 1, 2, 5, 50)
+        training_data[1].append(montecarlo.score(board, 1, 2, 5, 50)) # score(board, 1, 1, 5, 50)
 
         # Perform one random turn for each player
         board = board.move(p1.get_move(board))
