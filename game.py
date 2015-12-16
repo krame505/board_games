@@ -12,18 +12,19 @@ class Game:
         self.num_players = num_players
         self.board = Board(size, self, self.pieces())
     
-    # Check if the game has been lost by a player
     @abstractmethod
     def lost(self, board, player_num):
+        """Check if the game has been lost by a player"""
         pass
 
-    # Get the initial pieces
     @abstractmethod
     def pieces(self):
+        """Get the initial pieces"""
         pass
 
-    # Main driver for playing games
-    def play(self, players, verbose = False):
+    def play(self, players, board = None, verbose = False):
+        """Main driver for playing games"""
+
         # Initialize player numbers if not initialized already
         old_nums = [p.num for p in players]
         for i, p in enumerate(players):
@@ -31,7 +32,8 @@ class Game:
                 p.num = i + 1
         players.sort(key = lambda p: p.num)
 
-        board = self.board
+        if board == None:
+            board = self.board
         turn = 0
         num_players = len(players)
 

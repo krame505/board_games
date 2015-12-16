@@ -10,22 +10,25 @@ import multiprocessing
 def run_trial(board, player_1, player_2):
     """Play a trial game starting from the given board"""
     game = Chesskers()
-    result = game.play([player_1, player_2])
+    result = game.play([player_1, player_2], board)
     return 1 if result == player_2.num else -1
 
 def worker(arg):
     """Worker function unpacks arguments and calls run_trial"""
     return run_trial(*arg)
 
-def score(board, num, max_depth, randomize, num_trials):
+def score(board, num, max_depth, randomize, num_trials, parallelize = True):
     """Score a board by running trials repeatedly"""
     opponent = 1 if num == 2 else 2
     player_1 = HeuristicMinMaxSearchPlayer(max_depth, 'default', randomize, False, False, opponent)
     player_2 = HeuristicMinMaxSearchPlayer(max_depth, 'default', randomize, False, False, num)
-    pool = multiprocessing.Pool(10)
-    result = pool.map(worker, ((board, player_1, player_2) for i in range(num_trials)))
-    pool.close()
-    pool.join()
+    if parallelize:
+        pool = multiprocessing.Pool(10)
+        result = pool.map(worker, ((board, player_1, player_2) for i in range(num_trials)))
+        pool.close()
+        pool.join()
+    else:
+        map(worker, ((board, player_1, player_2) for i in range(num_trials)))
     return sum(result)
 
 class MonteCarloPlayer(Player):
