@@ -26,6 +26,7 @@ class Game:
         """Main driver for playing games"""
 
         # Initialize player numbers if not initialized already
+        old_players = [p for p in players]
         old_nums = [p.num for p in players]
         for i, p in enumerate(players):
             if p.num == None:
@@ -64,7 +65,7 @@ class Game:
             print(board)
 
         # Restore old player numbers
-        for p, n in zip(players, old_nums):
+        for p, n in zip(old_players, old_nums):
             p.num = n
 
         return winner
