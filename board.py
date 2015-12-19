@@ -2,7 +2,9 @@ from collections import namedtuple
 from copy import copy
 from termcolor import colored
 
-Move = namedtuple('Move', 'fromX fromY toX toY captured promotion')
+class Move(namedtuple('Move', 'fromX fromY toX toY captured promotion')):
+    def __hash__(self):
+        return hash((self.fromX, self.fromY, self.toX, self.toY))
 
 class Board:
     """Data structure for storing a board state, non-mutable.  Holds pieces in a dict, also has a
