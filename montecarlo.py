@@ -2,15 +2,13 @@
 
 from player import *
 from heuristicminmax import *
-from chesskers import Chesskers
 
 import random
 import multiprocessing
 
 def run_trial(board, player_1, player_2):
     """Play a trial game starting from the given board"""
-    game = Chesskers()
-    result = game.play([player_1, player_2], board)
+    result = board.game.play([player_1, player_2], board)
     return 1 if result == player_2.num else -1
 
 def worker(arg):
@@ -29,6 +27,7 @@ def score(board, num, max_depth, randomize, num_trials, parallelize = True):
         pool.join()
     else:
         map(worker, ((board, player_1, player_2) for i in range(num_trials)))
+
     return sum(result)
 
 class MonteCarloPlayer(Player):
