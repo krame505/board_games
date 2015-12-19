@@ -5,6 +5,7 @@ from checkers import *
 from humanplayer import HumanPlayer
 from randomized import RandomizedPlayer
 from montecarlo import MonteCarloPlayer
+from montecarlosearch import MonteCarloSearchPlayer
 from heuristicminmax import HeuristicMinMaxSearchPlayer
 from trainedminmax import TrainedMinMaxSearchPlayer
 
@@ -18,6 +19,8 @@ def get_player(name):
         return RandomizedPlayer()
     elif name == 'mc':
         return MonteCarloPlayer()
+    elif name == 'mcs':
+        return MonteCarloSearchPlayer()
     elif name == 'heuristic':
         return HeuristicMinMaxSearchPlayer(weights = 'default')
     elif name == 'genetic':
