@@ -4,7 +4,7 @@ from minmaxsearch import *
 
 import random
 import json
-import pickle
+import dill as pickle
 
 def board_to_inputs(board):
     """Convert a board to an 'input vector' list for the SVM
