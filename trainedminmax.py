@@ -4,8 +4,7 @@ from minmaxsearch import *
 
 import random
 import json
-import dill as pickle
-import sys
+import pickle
 
 def board_to_inputs(board):
     """Convert a board to an 'input vector' list for the SVM
@@ -49,19 +48,15 @@ class TrainedMinMaxSearchPlayer(MinMaxSearchPlayer):
         # If the provided svm is a string ending with '.pickle', then load it from that file
         if isinstance(scoring_svm, str) and scoring_svm.endswith('.pickle'):
             print("Loading svm...")
-            sklearn = pickle.load(open('sklearn.pickle', 'rb'))
-            sys.modules['sklearn'] = sklearn
             scoring_svm = pickle.load(open(scoring_svm, 'rb'))
         # If the provided svm is a string ending with '.json', then load training data from
         # that file and train a new SVM.  Dump the generated SVM to svm.pickle
         elif isinstance(scoring_svm, str) and scoring_svm.endswith('.json'):
             print("Building svm...")
             from sklearn import svm
-            import sklearn
             training_data = json.loads(open(scoring_svm).read())
             scoring_svm = svm.SVR()
             scoring_svm.fit(*training_data)
-            pickle.dump(sklearn, open('sklearn.pickle', 'wb'))
             pickle.dump(scoring_svm, open('svm.pickle', 'wb'))
 
         self.scoring_svm = scoring_svm
