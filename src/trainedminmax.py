@@ -40,10 +40,10 @@ class TrainedMinMaxSearchPlayer(MinMaxSearchPlayer):
         # If that fails, try to run training
         if scoring_svm == None:
             try:
-                scoring_svm = 'svm.pickle'
+                scoring_svm = '../data/svm.pickle'
                 open(scoring_svm)
             except FileNotFoundError:
-               scoring_svm = 'training.json'
+               scoring_svm = '../data/training.json'
 
         # If the provided svm is a string ending with '.pickle', then load it from that file
         if isinstance(scoring_svm, str) and scoring_svm.endswith('.pickle'):
@@ -57,7 +57,7 @@ class TrainedMinMaxSearchPlayer(MinMaxSearchPlayer):
             training_data = json.loads(open(scoring_svm).read())
             scoring_svm = svm.SVR()
             scoring_svm.fit(*training_data)
-            pickle.dump(scoring_svm, open('svm.pickle', 'wb'))
+            pickle.dump(scoring_svm, open('../data/svm.pickle', 'wb'))
 
         self.scoring_svm = scoring_svm
         super().__init__(max_depth, randomize, parallelize, dynamic_depth, num)

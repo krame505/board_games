@@ -17,7 +17,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         size = int(sys.argv[1])
     print("Generating", size, "training cases...")
-    training_file = 'training.json'
+    training_file = '../data/training.json'
     try:
         training_data = json.loads(open(training_file).read())
     except FileNotFoundError:

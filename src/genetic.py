@@ -119,7 +119,7 @@ if __name__ == '__main__':
         for p in dead:
             procs.remove(p)
         if len(procs) < 10:
-            p = Process(target=run_genetic, args=('scoring.json', lock))
+            p = Process(target=run_genetic, args=('../data/scoring.json', lock))
             procs.append(p)
             p.start()
 
