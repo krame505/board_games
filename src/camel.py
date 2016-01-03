@@ -21,8 +21,8 @@ class Camel(Piece):
                     if nx >= 0 and ny >= 0 and nx < board.size and ny < board.size:
                         if not board.is_open(nx, ny):
                             if board[nx, ny].player_num != self.player_num:
-                                result.append(Move(x, y, nx, ny, [(nx, ny)], None))
+                                result.append(DirectMove(x, y, nx, ny, [(nx, ny)], None))
                         else:
-                            result.append(Move(x, y, nx, ny, [], None))
+                            result.append(DirectMove(x, y, nx, ny, [], None))
 
         return result

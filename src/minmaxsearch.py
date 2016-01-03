@@ -1,5 +1,5 @@
 from player import *
-from board import *
+from move import *
 
 from abc import ABCMeta, abstractmethod
 import random
@@ -15,7 +15,7 @@ def minmax(state, depth, score, heuristic, terminal, player1, player2, paralleli
         return max_value(state, state, float('-inf'), float('inf'), depth, score, heuristic, terminal, player1, player2)
 
     # Search base case
-    opt = Move(-1, -1, -1, -1, [], "No move:\n" + str(state))
+    opt = NullMove()
     if terminal(state, state, depth):
         return score(state), opt
 
@@ -75,7 +75,7 @@ def max_value(state, initial_state, alpha, beta, depth, score, heuristic, termin
     """Max portion of minmax search"""
 
     # Search base case
-    opt = Move(-1, -1, -1, -1, [], "No move:\n" + str(state))
+    opt = NullMove()
     if terminal(state, initial_state, depth):
         return score(state), opt
 
@@ -94,7 +94,7 @@ def max_value(state, initial_state, alpha, beta, depth, score, heuristic, termin
 def min_value(state, initial_state, alpha, beta, depth, score, heuristic, terminal, player1, player2):
     """Min portion of minmax search"""
     # Search base case
-    opt = Move(-1, -1, -1, -1, [], "No move:\n" + str(state))
+    opt = NullMove()
     if terminal(state, initial_state, depth):
         return score(state), opt
 
@@ -190,8 +190,8 @@ class MinMaxSearchPlayer(Player):
                     print("Took", "{0:.2f}".format(elapsed), "sec, decreasing depth to", self.max_depth)
 
         if verbose:
-            for x, y in move.captured:
-                print(self, "Captured", board[x, y], "at", chr(ord('A') + x) + str(y + 1))
+#            for x, y in move.captured:
+#                print(self, "Captured", board[x, y], "at", chr(ord('A') + x) + str(y + 1))
             print("Score:", score)
 
         self.prev_score = score

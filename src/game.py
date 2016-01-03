@@ -54,6 +54,8 @@ class Game:
                         print(str(player) + "'s turn")
                         print(board)
                     move = player.get_move(board, verbose)
+                    if verbose and player.isAI:
+                        print(move.show(board))
                     board = board.move(move)
             # Advance the turn
             turn = (turn + 1) % len(players)

@@ -33,7 +33,7 @@ class Checker(Piece):
                 nx = x + shiftx
                 ny = y + shifty
                 if nx >= 0 and ny >= 0 and nx < board.size and ny < board.size and board.is_open(nx, ny):
-                    result.append(Move(x, y, nx, ny, [], None))
+                    result.append(DirectMove(x, y, nx, ny, [], None))
         def jump_moves(x, y):
             result = []
             for shiftx in ([-1] if self.direction == 'UP' else
@@ -53,9 +53,9 @@ class Checker(Piece):
                         board[jx, jy] and
                         board[jx, jy].player_num != self.player_num and
                         board.is_open(nx, ny)):
-                        result.append(Move(x, y, nx, ny, [(jx, jy)], None))
+                        result.append(DirectMove(x, y, nx, ny, [(jx, jy)], None))
                         for move in jump_moves(nx, ny):
-                            result.append(Move(x, y, move.toX, move.toY, [(jx, jy)] + move.captured, None))
+                            result.append(DirectMove(x, y, move.toX, move.toY, [(jx, jy)] + move.captured, None))
             return result
 
         result.extend(jump_moves(x, y))
@@ -69,7 +69,7 @@ class Checker(Piece):
                 (move.toY == board.size - 1 and self.direction == 'RIGHT')):
                 to_remove.append(move)
                 for promotion in self.promotions:
-                    new_moves.append(Move(move.fromX, move.fromY, move.toX, move.toY, move.captured, promotion))
+                    new_moves.append(DirectMove(move.fromX, move.fromY, move.toX, move.toY, move.captured, promotion))
         for move in to_remove:
             result.remove(move)
         result.extend(new_moves)
@@ -96,7 +96,7 @@ class CheckerKing(Piece):
                 nx = x + shiftx
                 ny = y + shifty
                 if nx >= 0 and ny >= 0 and nx < board.size and ny < board.size and board.is_open(nx, ny):
-                    result.append(Move(x, y, nx, ny, [], None))
+                    result.append(DirectMove(x, y, nx, ny, [], None))
         def jump_moves(x, y, visited):
             result = []
             for shiftx in [-1, 1]:
@@ -113,9 +113,9 @@ class CheckerKing(Piece):
                         board[jx, jy].player_num != self.player_num and
                         board.is_open(nx, ny) and
                         (nx, ny) not in visited):
-                        result.append(Move(x, y, nx, ny, [(jx, jy)], None))
+                        result.append(DirectMove(x, y, nx, ny, [(jx, jy)], None))
                         for move in jump_moves(nx, ny, visited + [(nx, ny)]):
-                            result.append(Move(x, y, move.toX, move.toY, [(jx, jy)] + move.captured, None))
+                            result.append(DirectMove(x, y, move.toX, move.toY, [(jx, jy)] + move.captured, None))
             return result
 
         result.extend(jump_moves(x, y, [(x, y)]))

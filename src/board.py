@@ -2,9 +2,9 @@ from collections import namedtuple
 from copy import copy
 from termcolor import colored
 
-class Move(namedtuple('Move', 'fromX fromY toX toY captured promotion')):
-    def __hash__(self):
-        return hash((self.fromX, self.fromY, self.toX, self.toY))
+# class Move(namedtuple('Move', 'fromX fromY toX toY captured promotion')):
+#     def __hash__(self):
+#         return hash((self.fromX, self.fromY, self.toX, self.toY))
 
 class Board:
     """Data structure for storing a board state, non-mutable.  Holds pieces in a dict, also has a
@@ -68,9 +68,5 @@ class Board:
                 if self.move(move) not in self.prev_states]
 
     def move(self, move):
-        new_pieces = copy(self.pieces)
-        for x, y in move.captured:
-            del new_pieces[x, y]
-        new_pieces[move.toX, move.toY] = move.promotion if move.promotion else new_pieces[move.fromX, move.fromY]
-        del new_pieces[move.fromX, move.fromY]
+        new_pieces = move.move(self.pieces)
         return Board(self.size, self.game, new_pieces, self.prev_states | {self})

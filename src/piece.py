@@ -1,4 +1,4 @@
-from board import Board, Move
+from move import *
 from player import Player
 
 from abc import ABCMeta, abstractmethod

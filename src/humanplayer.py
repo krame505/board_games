@@ -5,6 +5,9 @@ import sys
 class HumanPlayer(Player):
     """Implementation of a human player that gets moves on the command line"""
 
+    def __init__(self, num=None):
+        super().__init__(num, False)
+
     def get_move(self, board, verbose = False):
         moves = board.moves(self.num)
         prompt = "Move for " + str(self) + ": "
