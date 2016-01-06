@@ -18,7 +18,7 @@ class Checker(Piece):
             return []
 
         x, y = board.location(self)
-        key = tuple(sorted(board.pieces.items())), x, y
+        #key = tuple(sorted(board.pieces.items())), x, y
         #if key in Checker.move_cache:
         #    return Checker.move_cache[key]
         
