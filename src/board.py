@@ -29,17 +29,20 @@ class Board:
                      for p in other.locations.keys()))
     
     def __str__(self):
-        #self.pieces[i, j].label).ljust(2) + ' '
-        return "\n".join([" ".join([colored(self.pieces[i, j].label.ljust(2),
+        return ("  " + "  ".join(chr(i + ord('a')) for i in range(self.size)) + "\n" + 
+                "\n".join([str(self.size - i) + " " + 
+                          " ".join([colored(self.pieces[i, j].label.ljust(2),
                                             color = self.pieces[i, j].color,
                                             on_color = 'on_red' if (i + j) % 2 else 'on_grey',
                                             attrs = ['bold'])
                                     if (i, j) in self.pieces
-                                    else colored(chr(i + ord('A')) + str(j + 1),
+                                    else colored(chr(j + ord('a')) + str(self.size - i),
                                                  color = 'blue',
                                                  on_color = 'on_red' if (i + j) % 2 else 'on_grey')
-                                    for j in range(self.size)])
-                          for i in range(self.size)])
+                                    for j in range(self.size)]) +
+                           " " + str(self.size - i)
+                           for i in range(self.size)]) + "\n" + 
+                "  " + "  ".join(chr(i + ord('a')) for i in range(self.size)))
 
     def __getitem__(self, index):
         return self.pieces[index] if index in self.pieces else None

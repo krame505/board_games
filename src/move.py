@@ -4,9 +4,9 @@ class Move:
     """Common abstract base class for moves"""
     __metaclass__ = ABCMeta
 
-    @abstractmethod
-    def __str__(self):
-        return self.show(None)
+#    @abstractmethod
+#    def __str__(self):
+#        return self.show(None)
 
     @abstractmethod
     def __repr__(self):
@@ -49,11 +49,11 @@ class DirectMove(Move):
         return hash((self.fromX, self.fromY, self.toX, self.toY))
 
     def show(self, board):
-        return ("Moved " + (str(board[self.fromX, self.fromY]) + " at " if board else "") +
-                chr(self.fromX + ord('A')) + str(self.fromY + 1) +
-                " to " + chr(self.toX + ord('A')) + str(self.toY + 1) +
+        return ("Moved " + str(board[self.fromX, self.fromY]) + " at " +
+                chr(self.fromY + ord('a')) + str(board.size - self.fromX) +
+                " to " + chr(self.toY + ord('a')) + str(board.size - self.toX) +
                 "".join(", captured " + (str(board[i, j]) + " at " if board else "") +
-                        chr(i + ord('A')) + str(j + 1) for i, j in self.captured) +
+                        chr(j + ord('a')) + str(board.size - i) for i, j in self.captured) +
                 (", promoted to " + str(self.promotion) if self.promotion else ""))
 
     def move(self, pieces):
