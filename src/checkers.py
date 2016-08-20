@@ -26,6 +26,7 @@ class Checkers(Game):
                 else:
                     pieces[i, j] = Checker(1, 'DOWN')
                     pieces[self.size - i - 1, j + 1] = Checker(2, 'UP')
+        return pieces
 
     def lost(self, board, player_num):
         return len(board.moves(player_num)) == 0

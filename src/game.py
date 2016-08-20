@@ -10,19 +10,27 @@ class Game:
     def __init__(self, size, num_players):
         self.size = size
         self.num_players = num_players
-        self.board = Board(size, self, self.pieces())
-    
-    @abstractmethod
-    def lost(self, board, player_num):
-        """Check if the game has been lost by a player"""
-        pass
+        self.board = self.setup(size)
+
+    def setup(self, size):
+        """Get the initial board"""
+        return Board(size, self, self.pieces())
 
     @abstractmethod
     def pieces(self):
         """Get the initial pieces"""
         pass
+    
+    @abstractmethod
+    def lost(self, board, player_num):
+        """Check if the game has been lost by a player"""
+        pass
+    
+    def action(self, board, player_num, verbose=False):
+        """Allow for additional behavior to be added after each move"""
+        pass
 
-    def play(self, players, board = None, verbose = False):
+    def play(self, players, board=None, verbose=False):
         """Main driver for playing games"""
 
         # Initialize player numbers if not initialized already
@@ -31,7 +39,7 @@ class Game:
         for i, p in enumerate(players):
             if p.num == None:
                 p.num = i + 1
-        players.sort(key = lambda p: p.num)
+        players.sort(key=lambda p: p.num)
 
         if board == None:
             board = self.board
@@ -57,6 +65,7 @@ class Game:
                     if verbose and player.isAI:
                         print(move.show(board))
                     board = board.move(move)
+                    self.action(board, player.num, verbose)
             # Advance the turn
             turn = (turn + 1) % len(players)
 
