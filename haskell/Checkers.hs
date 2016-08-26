@@ -8,22 +8,22 @@ data CheckersPiece = Checker PlayerId Direction
 
 instance Piece_ CheckersPiece where
   pieceMoves board (x, y) (Checker _ N) =
-    filter (isOpenMove board) [DirectMove x y (x - 1) (y - 1),
-                               DirectMove x y (x - 1) (y + 1)]
+    filter (isOpenMove board) [DirectMove (x, y) (x - 1, y - 1),
+                               DirectMove (x, y) (x - 1, y + 1)]
   pieceMoves board (x, y) (Checker _ S) =
-    filter (isOpenMove board) [DirectMove x y (x + 1) (y + 1),
-                               DirectMove x y (x + 1) (y - 1)]
+    filter (isOpenMove board) [DirectMove (x, y) (x + 1, y + 1),
+                               DirectMove (x, y) (x + 1, y - 1)]
   pieceMoves board (x, y) (Checker _ E) =
-    filter (isOpenMove board) [DirectMove x y (x + 1) (y + 1),
-                               DirectMove x y (x - 1) (y + 1)]
+    filter (isOpenMove board) [DirectMove (x, y) (x + 1, y + 1),
+                               DirectMove (x, y) (x - 1, y + 1)]
   pieceMoves board (x, y) (Checker _ W) =
-    filter (isOpenMove board) [DirectMove x y (x + 1) (y - 1),
-                               DirectMove x y (x - 1) (y - 1)]
+    filter (isOpenMove board) [DirectMove (x, y) (x + 1, y - 1),
+                               DirectMove (x, y) (x - 1, y - 1)]
   pieceMoves board (x, y) (CheckerKing _) =
-    filter (isOpenMove board) [DirectMove x y (x + 1) (y - 1),
-                               DirectMove x y (x + 1) (y + 1),
-                               DirectMove x y (x - 1) (y - 1),
-                               DirectMove x y (x - 1) (y + 1)]
+    filter (isOpenMove board) [DirectMove (x, y) (x + 1, y - 1),
+                               DirectMove (x, y) (x + 1, y + 1),
+                               DirectMove (x, y) (x - 1, y - 1),
+                               DirectMove (x, y) (x - 1, y + 1)]
   
   name (Checker _ _) = "checker"
   name (CheckerKing _) = "checker king"

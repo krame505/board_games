@@ -11,9 +11,9 @@ humanPlayer game =
      case readMove (turn game) moveTxt (state game) of
        Left move -> 
          if elem move $ moves (turn game) (state game)
-         then return (action game move)
-         else do putStrLn $ "Invalid move"-- ++ show move
-                 --putStrLn $ "Valid moves: " ++ show (moves (turn game) (state game))
+         then return move
+         else do putStrLn $ "Invalid move" ++ show move
+                 putStrLn $ "Valid moves: " ++ show (moves (turn game) (state game))
                  humanPlayer game
        Right msg ->
          do putStrLn msg

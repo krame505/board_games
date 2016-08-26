@@ -3,7 +3,7 @@ module Games(
   Game, PlayerId, Player,
   initGame,
   state, players,
-  winner, isDraw, isActive, turn, actions, action,
+  winner, isDraw, isActive, turn, advance,
   GameState,
   moves, readMove, doMove,
   playGame) where
@@ -21,7 +21,7 @@ data Game gs m = GameState gs m =>
         isActiveState :: gs -> PlayerId -> Bool}
   
 type PlayerId = Int
-type Player gs m = Game gs m -> IO (Game gs m)
+type Player gs m = Game gs m -> IO m
 
 initGame :: GameState gs m =>
             gs -> Int ->
@@ -50,7 +50,7 @@ isActive game@Game {state=gs} player = isActiveState game gs player
 
 turn :: Game gs m -> PlayerId
 turn Game {players=p:_} = p
-
+{-
 actions :: Game gs m -> [Game gs m]
 actions game@Game {players=ps} | isJust $ winner game = []
                                | isDraw game = []
@@ -58,11 +58,12 @@ actions game@Game {players=ps} | isJust $ winner game = []
 actions game@Game {state=gs, players=p:ps} | isActive game p =
   [game {state=doMove move gs, players=ps ++ [p]} | move <- moves p gs]
                                            | otherwise       =
-    actions game {players=ps ++ [p]}
+    actions game {players=ps ++ [p]}-}
 
-action :: Game gs m -> m -> Game gs m
-action game@Game {state=gs, players=p:ps} move =
-  game {state=doMove move gs, players=ps ++ [p]}
+advance :: Game gs m -> m -> Game gs m
+advance game@Game {state=gs, players=p1:p2:ps} move
+  | isActive game p2 = game {state=doMove move gs, players=p2:ps ++ [p1]}
+  | otherwise = advance game {players= p2:ps ++ [p1]} move
 
 class (Show gs, Eq gs) => GameState gs m | gs -> m where
   moves :: PlayerId -> gs -> [m]
@@ -71,11 +72,11 @@ class (Show gs, Eq gs) => GameState gs m | gs -> m where
 
 -- Driver
 -- TODO: Show in type signature shouldn't be needed?
-playGame :: Show gs => Game gs m -> [Player gs m] -> Bool -> IO (Maybe PlayerId)
+playGame :: (Show gs, GameState gs m) => Game gs m -> [Player gs m] -> Bool -> IO (Maybe PlayerId)
 playGame game playerAIs verbosity =
   if length (zip playerAIs $ players game) < length (players game) -- playerAIs can be infinite
   then fail "Not enough players"
-  else if null $ actions game
+  else if null $ moves (turn game) (state game)
        then case winner game of
          Just winner -> do if verbosity
                              then putStrLn $ "\nPlayer " ++ show (winner + 1) ++ " won!"
@@ -88,5 +89,5 @@ playGame game playerAIs verbosity =
                  then do putStrLn $ "\nPlayer " ++ (show $ turn game + 1) ++ "'s turn"
                          putStrLn $ show (state game)
                  else return ()
-               newState <- playerAIs!!(turn game) $ game
-               playGame newState playerAIs verbosity
+               move <- playerAIs!!(turn game) $ game
+               playGame (advance game move) playerAIs verbosity

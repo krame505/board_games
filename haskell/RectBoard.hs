@@ -14,17 +14,13 @@ import Games
 -- Board games
 newtype RectBoard = RectBoard (Map Int (Map Int (Maybe Piece)))
                   deriving Eq
-data RectBoardMove = DirectMove Int Int Int Int
+data RectBoardMove = DirectMove Loc Loc
                    | CompositeMove [RectBoardMove]
                   deriving (Show, Eq) -- TODO: better show
 
 type Loc = (Int, Int)
 
-directMove :: Loc -> Loc -> RectBoardMove
-directMove (x1, y1) (x2, y2) = DirectMove x1 y1 x2 y2
-
 instance GameState RectBoard RectBoardMove where
-  --moves :: RectBoard -> PlayerId -> [RectBoard]
   moves player (RectBoard board) =
     [move
     | (i, row) <- toList board,
@@ -37,7 +33,7 @@ instance GameState RectBoard RectBoardMove where
   readMove player [col1, row1, ' ', col2, row2] board =
     readMove player [col1, row1, col2, row2] board
   readMove player [col1, row1, col2, row2] board | isDigit row1 && isDigit row2 =
-    Left $ DirectMove x1 y1 x2 y2
+    Left $ DirectMove (x1, y1) (x2, y2)
     where
       x1 = height board - read [row1]
       y1 = ord col1 - ord 'a'
@@ -52,12 +48,12 @@ instance GameState RectBoard RectBoardMove where
       y2 = ord col1 - ord 'a'
       options = [move | move <- moves player board,
                  case move of
-                   DirectMove _ _ x y -> x == x2 && y == y2
+                   DirectMove _ (x, y) -> x == x2 && y == y2
                    _ -> False]
   readMove player _ board = Right "Invalid move syntax"
 
-  doMove (DirectMove x1 y1 x2 y2) board =
-    set (x2, y2) (get (x1, y1) board) $ set (x1, y1) Nothing board
+  doMove (DirectMove loc1 loc2) board =
+    set loc2 (get loc1 board) $ set loc1 Nothing board
   -- TODO: Correct handling of swap moves
   doMove (CompositeMove moves) board = foldr doMove board moves
 
@@ -136,13 +132,13 @@ initBoard size pieces =
   foldr (\(piece, loc) board -> set loc (Just piece) board) (empty size) pieces
 
 isValidLoc :: RectBoard -> Loc -> Bool
-isValidLoc board (x, y) = x < height board && x > 0 && y < width board && y > 0
+isValidLoc board (x, y) = x < height board && x >= 0 && y < width board && y >= 0
 
 isOpen :: RectBoard -> Loc -> Bool
 isOpen board loc = isNothing $ get loc board
 
 isOpenMove :: RectBoard -> RectBoardMove -> Bool
-isOpenMove board (DirectMove x1 y1 x2 y2) = isValidLoc board (x2, y2) && isOpen board (x2, y2)
+isOpenMove board (DirectMove loc1 loc2) = isValidLoc board loc2 && isOpen board loc2
 -- TODO: Correct handling of swap moves
 isOpenMove board (CompositeMove moves) = all (isOpenMove board) moves
 
