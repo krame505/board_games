@@ -1,3 +1,6 @@
 *~
 *.out
+*.o
+*.hi
+Driver
 *__pycache__*
