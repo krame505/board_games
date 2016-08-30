@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, MultiParamTypeClasses #-}
+{-# LANGUAGE ExistentialQuantification, MultiParamTypeClasses, StandaloneDeriving #-}
 module RectBoard where
 import Data.List (intercalate)
 import Data.Maybe
@@ -6,6 +6,7 @@ import Data.Maybe
 import Data.Map.Strict (Map, (!), size, insert, toList, fromList)
 import Data.Text (justifyLeft)
 import Data.Char
+import Data.Typeable
 
 import System.Console.ANSI
 
@@ -13,9 +14,12 @@ import Games
 
 -- Board games
 newtype RectBoard = RectBoard (Map Int (Map Int (Maybe Piece)))
-                  deriving Eq
+                  deriving (Show, Read, Eq, Ord)
 data RectBoardMove = DirectMove Loc Loc
-                   | CompositeMove [RectBoardMove]
+                   | SwapMove Loc Loc
+                   | CaptureMove Loc PlayerId RectBoardMove
+                   | PromoteMove Loc Piece RectBoardMove
+                   | SeqMove [RectBoardMove]
                   deriving (Show, Eq) -- TODO: better show
 
 type Loc = (Int, Int)
@@ -30,35 +34,45 @@ instance GameState RectBoard RectBoardMove where
       owner piece == player]
 
   -- TODO: This assumes columns are less than 10 tall
-  readMove player [col1, row1, ' ', col2, row2] board =
-    readMove player [col1, row1, col2, row2] board
+  readMove player (col1:row1:' ':col2:row2:promote) board =
+    readMove player (col1:row1:col2:row2:promote) board
+  readMove player (col1:row1:col2:row2:' ':promote) board =
+    readMove player (col1:row1:col2:row2:promote) board
+  readMove player (col1:row1:col2:row2:promote) board | isDigit row1 && isDigit row2 && not (null promote) =
+    selectMove player (Just loc1, Just loc2, Just promote) board
+    where loc1 = (height board - read [row1], ord col1 - ord 'a')
+          loc2 = (height board - read [row2], ord col2 - ord 'a')
   readMove player [col1, row1, col2, row2] board | isDigit row1 && isDigit row2 =
-    Left $ DirectMove (x1, y1) (x2, y2)
-    where
-      x1 = height board - read [row1]
-      y1 = ord col1 - ord 'a'
-      x2 = height board - read [row2]
-      y2 = ord col2 - ord 'a'
-  readMove player [col1, row1] board =
-    if length options == 1
-    then Left $ head options
-    else Right $ "Invalid or ambiguous move"-- ++ show options
-    where
-      x2 = height board - read [row1]
-      y2 = ord col1 - ord 'a'
-      options = [move | move <- moves player board,
-                 case move of
-                   DirectMove _ (x, y) -> x == x2 && y == y2
-                   _ -> False]
+    selectMove player (Just loc1, Just loc2, Nothing) board
+    where loc1 = (height board - read [row1], ord col1 - ord 'a')
+          loc2 = (height board - read [row2], ord col2 - ord 'a')
+  readMove player [col1, row1] board | isDigit row1 =
+    selectMove player (Nothing, Just loc, Nothing) board
+    where loc = (height board - read [row1], ord col1 - ord 'a')
   readMove player _ board = Right "Invalid move syntax"
+
+  showMove (DirectMove loc1 loc2) board =
+    "moved " ++ showBoardLoc board loc1 ++ " to " ++ showLoc board loc2
+  showMove (SwapMove loc1 loc2) board =
+    "swapped " ++ showBoardLoc board loc1 ++ " and " ++ showBoardLoc board loc2
+  showMove (CaptureMove loc _ m) board = 
+    showMove m board ++ ", captured " ++ showBoardLoc board loc
+  showMove (PromoteMove loc piece m) board =
+    showMove m board ++ ", promoted to " ++ name piece
+  showMove (SeqMove []) board = ""
+  showMove (SeqMove [m]) board = showMove m board
+  showMove (SeqMove (m:ms)) board =
+    showMove m board ++ ", " ++ showMove (SeqMove ms) (doMove m board)
 
   doMove (DirectMove loc1 loc2) board =
     set loc2 (get loc1 board) $ set loc1 Nothing board
-  -- TODO: Correct handling of swap moves
-  doMove (CompositeMove moves) board = foldr doMove board moves
+  doMove (SwapMove loc1 loc2) board =
+    set loc2 (get loc1 board) $ set loc1 (get loc2 board) board
+  doMove (CaptureMove loc _ m) board = set loc Nothing (doMove m board)
+  doMove (PromoteMove loc piece m) board = set loc (Just piece) (doMove m board)
+  doMove (SeqMove moves) board = foldr doMove board moves
 
-instance Show RectBoard where
-  show (RectBoard board) =
+  display (RectBoard board) =
     "\n  " ++  intercalate "  " [[a] | a <- take (size $ board!0)['a'..]] ++ "\n" ++
     intercalate "\n" [
       show (size board - i) ++ " " ++
@@ -84,6 +98,39 @@ instance Show RectBoard where
       | (i, row) <- toList board] ++
     "\n  " ++  intercalate "  " [[a] | a <- take (size $ board!0)['a'..]] ++ "\n"
 
+showBoardLoc :: RectBoard -> Loc -> String
+showBoardLoc board loc = case get loc board of
+  Just piece -> name piece ++ " at " ++ showLoc board loc
+  Nothing -> undefined
+
+showLoc :: RectBoard -> Loc -> String
+showLoc board (x, y) = (chr $ ord 'a' + y) : (show $ height board - x)
+
+selectMove :: PlayerId -> (Maybe Loc, Maybe Loc, Maybe String) ->
+              RectBoard -> Either RectBoardMove String
+selectMove player (loc1, loc2, promote) board =
+  if null options
+  then Right $ "Invalid move"-- ++ show options
+  else if length options == 1
+  then Left $ head options
+  else Right $ "Ambiguous move"-- ++ show options
+  where
+    options =
+      [move | move <- moves player board,
+       case loc1 of
+         Just loc ->
+           isOccupied board loc && not (isOccupied (doMove move board) loc)
+         Nothing -> True,
+       case loc2 of
+         Just loc ->
+           not (isOccupied board loc) && isOccupied (doMove move board) loc
+         Nothing -> True,
+       case (promote, loc2) of
+         (Just p, Just loc) ->
+           case get loc $ doMove move board of
+             Just piece -> name piece == p
+             Nothing -> True
+         _ -> True]
 
 -- Board helper functions
 get :: Loc -> RectBoard -> Maybe Piece
@@ -98,7 +145,7 @@ set :: Loc -> Maybe Piece -> RectBoard -> RectBoard
 set (x, y) piece (RectBoard board) =
   if x >= size board || x < 0
   then error $ "x coordinate out of bounds: " ++ show x
-  else if x >= size (board!0) || x < 0
+  else if y >= size (board!0) || y < 0
   then error $ "y coordinate out of bounds: " ++ show y
   else RectBoard $ insert x (insert y piece $ board!x) board
 
@@ -134,42 +181,101 @@ initBoard size pieces =
 isValidLoc :: RectBoard -> Loc -> Bool
 isValidLoc board (x, y) = x < height board && x >= 0 && y < width board && y >= 0
 
-isOpen :: RectBoard -> Loc -> Bool
-isOpen board loc = isNothing $ get loc board
+isOccupied :: RectBoard -> Loc -> Bool
+isOccupied board loc = isJust $ get loc board
 
-isOpenMove :: RectBoard -> RectBoardMove -> Bool
-isOpenMove board (DirectMove loc1 loc2) = isValidLoc board loc2 && isOpen board loc2
--- TODO: Correct handling of swap moves
-isOpenMove board (CompositeMove moves) = all (isOpenMove board) moves
+isValidMove :: RectBoard -> RectBoardMove -> Bool
+isValidMove board (DirectMove loc1 loc2) =
+  isValidLoc board loc1 && isValidLoc board loc2 &&
+  isOccupied board loc1 && not (isOccupied board loc2)
+isValidMove board (SwapMove loc1 loc2) =
+  isValidLoc board loc1 && isValidLoc board loc2 &&
+  isOccupied board loc1 && isOccupied board loc2
+isValidMove board (CaptureMove loc p m) =
+  isValidMove board m && isValidLoc board loc && case get loc (doMove m board) of
+    Just piece -> owner piece /= p
+    Nothing -> False
+isValidMove board (PromoteMove loc _ m) =
+  isValidMove board m && isValidLoc board loc && isOccupied board loc
+isValidMove board (SeqMove (m:ms)) =
+  isValidMove board m && isValidMove (doMove m board) (SeqMove ms)
+isValidMove board (SeqMove []) = True
 
 -- Pieces
-class (Show p, Eq p) => Piece_ p where
-  pieceMoves :: RectBoard -> (Int, Int) -> p -> [RectBoardMove]
-
-  name :: p -> String
-  label :: p -> Char
-  color :: p -> Color
-  owner :: p -> PlayerId
-
-  color p = [White, Green, Yellow, Blue, Magenta, Cyan]!!(owner p `div` 2)
-
-data Piece = forall p. Piece_ p => Piece p
---deriving instance Show Piece
-
-instance Show Piece where
-  show (Piece p) = show p
-
-instance Eq Piece where
-  -- Hacky, but the best we can do since p1 and p2 might not be the same type
-  Piece p1 == Piece p2 = show p1 == show p2
-
-instance Piece_ Piece where
-  pieceMoves board loc (Piece p) = pieceMoves board loc p
-  name (Piece p) = name p
-  label (Piece p) = label p
-  color (Piece p) = color p
-  owner (Piece p) = owner p
-
--- Pieces declared in game modules
+data Piece = Checker PlayerId [Piece] Direction
+           | CheckerKing PlayerId
+           deriving (Show, Read, Eq, Ord)
+                    
 data Direction = N | S | E | W
-               deriving (Show, Eq)
+               deriving (Show, Read, Eq, Ord)
+
+pieceMoves :: RectBoard -> Loc -> Piece -> [RectBoardMove]
+pieceMoves board loc (Checker owner promotions N) =
+  checkersMoves board loc owner promotions
+  (\(x, y) -> x == 0)
+  [\(x, y) -> (x - 1, y + 1),
+   \(x, y) -> (x - 1, y - 1)]
+pieceMoves board loc (Checker owner promotions S) =
+  checkersMoves board loc owner promotions
+  (\(x, y) -> x == height board - 1)
+  [\(x, y) -> (x + 1, y + 1),
+   \(x, y) -> (x + 1, y - 1)]
+pieceMoves board loc (Checker owner promotions E) =
+  checkersMoves board loc owner promotions
+  (\(x, y) -> y == 0)
+  [\(x, y) -> (x + 1, y + 1),
+   \(x, y) -> (x - 1, y + 1)]
+pieceMoves board loc (Checker owner promotions W) =
+  checkersMoves board loc owner promotions
+  (\(x, y) -> y == width board - 1)
+  [\(x, y) -> (x + 1, y - 1),
+   \(x, y) -> (x - 1, y - 1)]
+pieceMoves board loc (CheckerKing owner) =
+  checkersMoves board loc owner []
+  (\(x, y) -> False)
+  [\(x, y) -> (x + 1, y + 1),
+   \(x, y) -> (x + 1, y - 1),
+   \(x, y) -> (x - 1, y + 1),
+   \(x, y) -> (x - 1, y - 1)]
+
+checkersMoves :: RectBoard -> Loc -> PlayerId ->
+                 [Piece] -> (Loc -> Bool) ->
+                 [(Loc -> Loc)] ->
+                 [RectBoardMove]
+checkersMoves board loc owner promotions promote fns =
+  [m |
+   fn <- fns,
+   let newLoc = fn loc,
+   let move = DirectMove loc newLoc,
+   isValidMove board move,
+   m <- if promote newLoc
+        then [PromoteMove newLoc piece move | piece <- promotions]
+        else [move]] ++
+  captureMoves board loc where
+    captureMoves :: RectBoard -> Loc -> [RectBoardMove]
+    captureMoves board loc =
+      [m |
+       fn <- fns,
+       let newLoc = fn.fn $ loc,
+       let move = CaptureMove (fn loc) owner $ DirectMove loc (fn (fn loc)),
+       isValidMove board move,
+       m <- if promote newLoc
+            then [PromoteMove newLoc piece move | piece <- promotions]
+            else move : [SeqMove [move, m]
+                        | m <- captureMoves (doMove move board) newLoc]]
+
+name :: Piece -> String
+name (Checker _ _ _) = "checker"
+name (CheckerKing _) = "checker king"
+
+label :: Piece -> Char
+label (Checker player _ _) = if player `mod` 2 == 0 then '⛀' else '⛂'
+label (CheckerKing player) = if player `mod` 2 == 0 then '⛁' else '⛃'
+
+color :: Piece -> Color
+-- Add other cases
+color p = [White, Green, Yellow, Blue, Magenta, Cyan]!!(owner p `div` 2)
+
+owner :: Piece -> PlayerId
+owner (Checker player _ _) = player
+owner (CheckerKing player) = player

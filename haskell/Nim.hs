@@ -8,7 +8,7 @@ import Data.Ix (range)
 import Data.Char (isDigit)
 
 newtype NimBoard = NimBoard Int
-                 deriving Eq
+                 deriving (Show, Read, Eq)
 newtype NimMove = NimMove Int
                  deriving (Show, Eq)
 
@@ -16,13 +16,15 @@ instance GameState NimBoard NimMove where
   moves player (NimBoard count) =
     [NimMove n | n <- range (1, 2), n <= count]
   
-  readMove player n (NimBoard count) | all isDigit n = Left $ NimMove $ read n
-                                     | otherwise = Right "Invalid move"
+  readMove player n (NimBoard count)
+    | all isDigit n = Left $ NimMove $ read n
+    | otherwise = Right "Invalid move"
+
+  showMove (NimMove n) _ = "removed " ++ show n
 
   doMove (NimMove n) (NimBoard count) = NimBoard $ count - n
 
-instance Show NimBoard where
-  show (NimBoard count) = take count $ repeat '*'
+  display (NimBoard count) = take count $ repeat '*'
 
 nim :: Int -> Game NimBoard NimMove
 nim count = initGame
