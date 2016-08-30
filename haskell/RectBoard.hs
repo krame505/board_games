@@ -1,4 +1,4 @@
-{-# LANGUAGE ExistentialQuantification, MultiParamTypeClasses, StandaloneDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module RectBoard where
 import Data.List (intercalate)
 import Data.Maybe
@@ -20,11 +20,11 @@ data RectBoardMove = DirectMove Loc Loc
                    | CaptureMove Loc PlayerId RectBoardMove
                    | PromoteMove Loc Piece RectBoardMove
                    | SeqMove [RectBoardMove]
-                  deriving (Show, Eq) -- TODO: better show
+                  deriving (Show, Read, Eq, Ord) -- TODO: better show
 
 type Loc = (Int, Int)
 
-instance GameState RectBoard RectBoardMove where
+instance Board RectBoard RectBoardMove where
   moves player (RectBoard board) =
     [move
     | (i, row) <- toList board,
@@ -70,7 +70,7 @@ instance GameState RectBoard RectBoardMove where
     set loc2 (get loc1 board) $ set loc1 (get loc2 board) board
   doMove (CaptureMove loc _ m) board = set loc Nothing (doMove m board)
   doMove (PromoteMove loc piece m) board = set loc (Just piece) (doMove m board)
-  doMove (SeqMove moves) board = foldr doMove board moves
+  doMove (SeqMove moves) board = foldl (\b m -> doMove m b) board moves
 
   display (RectBoard board) =
     "\n  " ++  intercalate "  " [[a] | a <- take (size $ board!0)['a'..]] ++ "\n" ++

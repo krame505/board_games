@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-module Nim where
 -- Simple demo/test
 
 import Games
@@ -7,12 +6,18 @@ import Games
 import Data.Ix (range)
 import Data.Char (isDigit)
 
+import RandomPlayer
+import HumanPlayer
+import MCTSPlayer
+
+import System.Environment
+
 newtype NimBoard = NimBoard Int
                  deriving (Show, Read, Eq)
 newtype NimMove = NimMove Int
-                 deriving (Show, Eq)
+                 deriving (Show, Read, Eq, Ord)
 
-instance GameState NimBoard NimMove where
+instance Board NimBoard NimMove where
   moves player (NimBoard count) =
     [NimMove n | n <- range (1, 2), n <= count]
   
@@ -26,12 +31,27 @@ instance GameState NimBoard NimMove where
 
   display (NimBoard count) = take count $ repeat '*'
 
-nim :: Int -> Game NimBoard NimMove
-nim count = initGame
-  (NimBoard count)
-  2
-  (\(NimBoard count) players -> if count == 0
-                                then Just $ head players
-                                else Nothing)
-  (\_ _ -> False)
-  (\_ _ -> True)
+instance Game NimBoard NimMove where
+  initial = GameState {board=NimBoard 17, players=initPlayers 2}
+  
+  winner GameState {board=NimBoard 0, players=p:_} = Just p
+  winner _ = Nothing
+
+  isDraw game = False
+
+  isActive game player = True
+
+playerOptions :: [(String, Player NimBoard NimMove)]
+playerOptions = [("random", randomPlayer),
+                 ("human", humanPlayer),
+                 ("mcts", mctsPlayer)]
+          
+main :: IO ()
+main = do args <- getArgs
+          let players =
+                [case lookup arg playerOptions of
+                    Just player -> player
+                    Nothing -> error $ "Invalid player " ++ arg
+                | arg <- args] ++ repeat humanPlayer
+          winner <- playGame players True
+          return ()
