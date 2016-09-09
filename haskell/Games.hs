@@ -2,11 +2,11 @@
 module Games(
   GameState(..), Game, Board, PlayerId, Player,
   initial, winner, isDraw, isActive,
-  moves, readMove, showMove, doMove, display,
-  initPlayers, turn, numPlayers, makeMove,
+  moves, readMove, showMove, doMove, display, features,
+  initPlayers, turn, numPlayers, gameMoves, makeMove,
   playGame) where
 
-import Data.Maybe
+--import Data.Maybe
 import Data.Ix
 
 data GameState b m =
@@ -30,6 +30,9 @@ class (Board b m) => Game b m where
   -- Return true if player is still in the game
   isActive :: GameState b m -> PlayerId -> Bool
 
+  -- Generate a representation of the board sutable for learning
+  features :: b -> [Int]
+
 class (Show b, Read b, Eq b,
        Show m, Read m, Eq m, Ord m) => Board b m | b -> m where
   moves :: PlayerId -> b -> [m]
@@ -43,13 +46,16 @@ type PlayerId = Int
 type Player b m = GameState b m -> IO m
 
 initPlayers :: Int -> [PlayerId]
-initPlayers numPlayers = range (0, numPlayers - 1)
+initPlayers numPlayers = [0..numPlayers - 1]
 
 turn :: GameState b m -> PlayerId
 turn GameState {players=p:_} = p
 
 numPlayers :: GameState b m -> Int
 numPlayers GameState {players=ps} = length ps
+
+gameMoves :: Game b m => GameState b m -> [m]
+gameMoves game = moves (turn game) $ board game
 
 makeMove :: Game b m => GameState b m -> m -> GameState b m
 makeMove game@GameState {board=b, players=p1:p2:ps} move

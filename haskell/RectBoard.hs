@@ -155,16 +155,22 @@ width (RectBoard board) = size $ board!0
 height :: RectBoard -> Int
 height (RectBoard board) = size board
 
-pieces :: RectBoard -> [Piece]
+elems :: RectBoard -> [(Loc, Maybe Piece)]
+elems (RectBoard board) =
+  [((i, j), elem)
+  | (i, row) <- toList board,
+    (j, elem) <- toList row]
+
+pieces :: RectBoard -> [(Loc, Piece)]
 pieces (RectBoard board) =
-  [piece
+  [((i, j), piece)
   | (i, row) <- toList board,
     (j, elem) <- toList row,
     piece <- maybeToList elem]
 
-playerPieces :: RectBoard -> PlayerId -> [Piece]
+playerPieces :: RectBoard -> PlayerId -> [(Loc, Piece)]
 playerPieces (RectBoard board) player =
-  [piece
+  [((i, j), piece)
   | (i, row) <- toList board,
     (j, elem) <- toList row,
     piece <- maybeToList elem,
@@ -200,6 +206,19 @@ isValidMove board (PromoteMove loc _ m) =
 isValidMove board (SeqMove (m:ms)) =
   isValidMove board m && isValidMove (doMove m board) (SeqMove ms)
 isValidMove board (SeqMove []) = True
+
+rectBoardFeatures :: [PlayerId] -> [String] -> RectBoard -> [Int]
+rectBoardFeatures players pieceNames board =
+  -- TODO: Try excluding redundant sums
+  [sum [1 | (_, piece) <- playerPieces board player, name piece == pieceName]
+  | pieceName <- ["checker", "checker king"],
+    player <- [0..1]] ++
+  [case elem of
+      Just piece -> if name piece == pieceName then 1 else 0
+      Nothing -> 0
+  | pieceName <- ["checker", "checker king"],
+    player <- [0..1],
+    (_, elem) <- elems board]
 
 -- Pieces
 data Piece = Checker PlayerId [Piece] Direction

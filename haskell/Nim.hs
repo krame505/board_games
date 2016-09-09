@@ -3,7 +3,6 @@
 
 import Games
 
-import Data.Ix (range)
 import Data.Char (isDigit)
 
 import RandomPlayer
@@ -19,7 +18,7 @@ newtype NimMove = NimMove Int
 
 instance Board NimBoard NimMove where
   moves player (NimBoard count) =
-    [NimMove n | n <- range (1, 2), n <= count]
+    [NimMove n | n <- [1, 2], n <= count]
   
   readMove player n (NimBoard count)
     | all isDigit n = Left $ NimMove $ read n
@@ -44,7 +43,7 @@ instance Game NimBoard NimMove where
 playerOptions :: [(String, Player NimBoard NimMove)]
 playerOptions = [("random", randomPlayer),
                  ("human", humanPlayer),
-                 ("mcts", mctsPlayer)]
+                 ("mcts", mctsPlayer 1000 2)]
           
 main :: IO ()
 main = do args <- getArgs
