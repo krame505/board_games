@@ -5,7 +5,6 @@
 #include <wchar.h>
 
 #include <vector>
-#include <stack>
 #include <set>
 #include <string>
 #include <iostream>
@@ -60,27 +59,38 @@ public:
   RectBoard(int width, int height) :
     width(width),
     height(height),
-    elems(new Piece*[width * height])
-  {}
+    pieces(new Piece*[width * height])
+  {cout << width << ", " << height << endl;}
 
   RectBoard(const RectBoard &other) :
     width(other.width),
     height(other.height),
-    elems(new Piece*[width * height]) {
+    pieces(new Piece*[width * height]),
+    hiddenPieces(other.hiddenPieces) {
     for (int i = 0; i < width * height; i++) {
-      if (other.elems[i])
-        elems[i] = other.elems[i]->clone();
+      if (other.pieces[i])
+        pieces[i] = other.pieces[i]->clone();
     }
+    for (Piece *&p : hiddenPieces)
+      p = p->clone();
   }
   
   ~RectBoard() {
-    delete elems;
+    delete pieces;
+  }
+
+  // Delete the pieces contained in this board
+  void deletePieces() {
+    for (Piece *p : getPieces())
+      delete p;
+    for (Piece *p : hiddenPieces)
+      delete p;
   }
 
   // Get a pointer into the array corresponding to the start of row x
   // Then we can access as board[x][y] and do assignments
   Piece **operator[](int x) const {
-    return &elems[x * width];
+    return &pieces[x * width];
   }
 
   // Index on a loc directly
@@ -90,33 +100,25 @@ public:
     return LocIndexProxy(*this, l);
   }
 
-  vector<Piece*> getPieces() const {
-    vector<Piece*> result;
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
-        if ((*this)[i][j])
-          result.push_back((*this)[i][j]);
-      }
-    }
-    return result;
+  vector<Piece*> getPieces() const;
+  vector<Piece*> getPieces(PlayerId owner) const;
+
+  void hide(loc l) {
+    assert((*this)[l] != NULL);
+    hiddenPieces.push_back((*this)[l]);
+    (*this)[l] = NULL;
   }
 
-  vector<Piece*> getPieces(PlayerId owner) const {
-    vector<Piece*> result;
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
-        if ((*this)[i][j] && (*this)[i][j]->owner == owner)
-          result.push_back((*this)[i][j]);
-      }
-    }
-    return result;
+  void restore(loc l) {
+    (*this)[l] = hiddenPieces.back();
+    hiddenPieces.pop_back();
   }
   
   // Fields
   const int width, height;
-  stack<Piece*> removedElems;
 private:
-  Piece **elems;
+  Piece **pieces;
+  vector<Piece*> hiddenPieces; // Stack of pieces currently not on the board
 
   // Hack needed for board[loc] = piece to work
   struct LocIndexProxy {
@@ -158,11 +160,11 @@ public:
   ostream &show(ostream &os, Game *g);
   virtual ostream &show(ostream&, RectBoard&) = 0;
   
-  // Execute the move on the given board, returning a set of created pieces
-  virtual set<Piece*> doMove(RectBoard&) = 0;
+  // Execute the move on the given board
+  virtual void doMove(RectBoard&) = 0;
 
-  // Undo the move on the given board, returning a set of deleted pieces
-  virtual set<Piece*> undoMove(RectBoard&) = 0;
+  // Undo the move on the given board
+  virtual void undoMove(RectBoard&) = 0;
 };
 
 // Base class for all kinds of games on a rectangular grid board
@@ -177,8 +179,7 @@ public:
     board(other.board) {}
 
   virtual ~RectBoardGame() {
-    for (Piece *p : pieces)
-      delete p;
+    board.deletePieces();
   }
 
 protected:
@@ -194,25 +195,20 @@ protected:
 
   void addPiece(Piece *p, loc l) {
     board[l] = p;
-    pieces.insert(p);
   }
 
   friend ostream &RectBoardMove::show(ostream&, Game*);
 
 private:
-  set<Piece*> pieces;
-
   ostream &write(ostream&) const;
   vector<Move*> genMoves();
 
   void doMove(Move *m) {
-    set<Piece*> newPieces = ((RectBoardMove*)m)->doMove(board);
-    pieces.insert(newPieces.begin(), newPieces.end());
+    ((RectBoardMove*)m)->doMove(board);
   }
 
   void undoMove(Move *m) {
-    set<Piece*> newPieces = ((RectBoardMove*)m)->doMove(board);
-    pieces.erase(newPieces.begin(), newPieces.end());
+    ((RectBoardMove*)m)->doMove(board);
   }
 };
 
@@ -235,18 +231,16 @@ public:
     return os << "moved " << board[l1]->name << " at " << l1 << " to " << l2;
   }
 
-  set<Piece*> doMove(RectBoard &board) {
+  void doMove(RectBoard &board) {
     assert(board[l1] != NULL);
     board[l2] = board[l1];
     board[l1] = NULL;
-    return set<Piece*>();
   }
 
-  set<Piece*> undoMove(RectBoard &board) {
+  void undoMove(RectBoard &board) {
     assert(board[l2] != NULL);
     board[l1] = board[l2];
     board[l2] = NULL;
-    return set<Piece*>();
   }
 
 private:
@@ -273,22 +267,20 @@ public:
       " with " << board[l2]->name << " at " << l2;
   }
 
-  set<Piece*> doMove(RectBoard &board) {
+  void doMove(RectBoard &board) {
     assert(board[l1] != NULL);
     assert(board[l2] != NULL);
     Piece *tmp = board[l1];
     board[l1] = board[l2];
     board[l2] = tmp;
-    return set<Piece*>();
   }
 
-  set<Piece*> undoMove(RectBoard &board) {
+  void undoMove(RectBoard &board) {
     assert(board[l1] != NULL);
     assert(board[l2] != NULL);
     Piece *tmp = board[l1];
     board[l1] = board[l2];
     board[l2] = tmp;
-    return set<Piece*>();
   }
 
 private:
@@ -313,18 +305,14 @@ public:
     return os << "captured " << board[l]->name << " at " << l;
   }
 
-  set<Piece*> doMove(RectBoard &board) {
+  void doMove(RectBoard &board) {
     assert(board[l] != NULL);
-    board.removedElems.push(board[l]);
-    board[l] = NULL;
-    return set<Piece*>();
+    board.hide(l);
   }
 
-  set<Piece*> undoMove(RectBoard &board) {
+  void undoMove(RectBoard &board) {
     assert(board[l] == NULL);
-    board[l] = board.removedElems.top();
-    board.removedElems.pop();
-    return set<Piece*>();
+    board.restore(l);
   }
 
 private:
@@ -356,21 +344,18 @@ public:
     return os << "promoted " << board[l]->name << " at " << l << " to " << piece->name;
   }
 
-  set<Piece*> doMove(RectBoard &board) {
+  void doMove(RectBoard &board) {
     assert(board[l] != NULL);
     Piece *p = piece->clone();
-    board.removedElems.push(board[l]);
+    board.hide(l);
     board[l] = p;
-    return set<Piece*> {p};
   }
 
-  set<Piece*> undoMove(RectBoard &board) {
+  void undoMove(RectBoard &board) {
     assert(board[l] != NULL);
     Piece *p = board[l];
     delete p;
-    board[l] = board.removedElems.top();
-    board.removedElems.pop();
-    return set<Piece*> {p};
+    board.restore(l);
   }
 
 private:
@@ -420,23 +405,16 @@ public:
     return os;
   }
 
-  set<Piece*> doMove(RectBoard &board) {
-    set<Piece*> result;
+  void doMove(RectBoard &board) {
     for (RectBoardMove *move : moves) {
-      set<Piece*> res = move->doMove(board);
-      result.insert(res.begin(), res.end());
+      move->doMove(board);
     }
-    return result;
   }
 
-  set<Piece*> undoMove(RectBoard &board) {
-    set<Piece*> result;
+  void undoMove(RectBoard &board) {
     for (vector<RectBoardMove*>::reverse_iterator it = moves.rbegin(); it != moves.rend(); it++) {
-      RectBoardMove *move = *it;
-      set<Piece*> res = move->undoMove(board);
-      result.insert(res.begin(), res.end());
+      (*it)->undoMove(board);
     }
-    return result;
   }
 
 private:
