@@ -103,8 +103,8 @@ def min_value(state, initial_state, alpha, beta, depth, score, heuristic, termin
     for s, move in sorted([(heuristic(state.move(m), depth), m) for m in state.moves(player2)], reverse = True):
         # Compute the next max value, check if it is optimal
         s1, m = max_value(state.move(move), initial_state, alpha, beta, depth - 1, score, heuristic, terminal, player1, player2)
-        # Check for alpha cutoff and update beta
         v, opt = min((v, opt), (s1, move))
+        # Check for alpha cutoff and update beta
         if v <= alpha:
             break
         beta = min(beta, v)
