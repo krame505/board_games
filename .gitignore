@@ -4,3 +4,5 @@
 *.hi
 Driver
 *__pycache__*
+.fuse_hidden*
+*bin/*
