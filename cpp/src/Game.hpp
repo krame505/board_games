@@ -24,6 +24,8 @@ public:
   virtual ostream &show(ostream&, Game*) = 0;
 };
 
+ostream &operator<<(ostream&, Move*);
+
 typedef int PlayerId;
 
 class Game {
@@ -97,6 +99,9 @@ public:
 
   friend ostream &operator<<(ostream&, Game*);
 
+  // Generate the list of possible moves
+  virtual vector<Move*> parseMove(string, string&) const = 0;
+
   // Return true if player i is active (i.e. shouldn't be skipped)
   virtual bool isPlayerActive(int) {
     return true;
@@ -136,6 +141,8 @@ private:
   vector<vector<Move*>> moves;
   vector<Move*> prevMoves;
 };
+
+ostream &operator<<(ostream&, Game*);
 
 class Player {
 public:

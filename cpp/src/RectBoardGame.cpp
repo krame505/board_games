@@ -78,3 +78,77 @@ ostream &RectBoardGame::write(ostream &os) const {
   }
   return os;
 }
+
+vector<Move*>RectBoardGame::parseMove(string input, string &error) const {
+  int len = input.size();
+
+  vector<Move*> moves = getMoves();
+  vector<Move*> empty;
+
+  int i = 0;
+  loc to(-1, -1);
+
+  if (len < 2 || len == 3) {
+    error = "Invalid move syntax";
+    return empty;
+  }
+
+  if (len > 2) {
+    loc from(input[i + 1] - '1', input[i] - 'a');
+    if (from.x < 0 || from.x >= getBoard().height ||
+        from.y < 0 || from.y >= getBoard().width) {
+      error = "Invalid source location";
+      return empty;
+    }
+    moves.erase(remove_if(moves.begin(), moves.end(),
+                          [this, from](Move *m) {
+                            if (getBoard()[from] != NULL) {
+                              move(m);
+                              bool keep = getBoard()[from] == NULL;
+                              backtrack();
+                              return !keep;
+                            }
+                            return true;
+                          }),
+                moves.end());
+    i += 2;
+    if (input[i] == ' ')
+      i++;
+  }
+
+  if (i < len) {
+    to = loc(input[i + 1] - '1', input[i] - 'a');
+    if (to.x < 0 || to.x >= getBoard().height ||
+        to.y < 0 || to.y >= getBoard().width) {
+      error = "Invalid destination";
+      return empty;
+    }
+    moves.erase(remove_if(moves.begin(), moves.end(),
+                          [this, to](Move *m) {
+                            if (getBoard()[to] == NULL) {
+                              move(m);
+                              bool keep = getBoard()[to] != NULL;
+                              backtrack();
+                              return !keep;
+                            }
+                            return true;
+                          }),
+                moves.end());
+    i += 2;
+    if (input[i] == ' ')
+      i++;
+  }
+
+  if (i < len) {
+    string name(&input[i]);
+    moves.erase(remove_if(moves.begin(), moves.end(),
+                          [this, to, name](Move *m) {
+                            move(m);
+                            bool keep = getBoard()[to]->name == name;
+                            backtrack();
+                            return !keep;
+                          }),
+                moves.end());
+  }
+  return moves;
+}

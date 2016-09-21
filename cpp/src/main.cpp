@@ -3,6 +3,7 @@
 #include "Checkers.hpp"
 
 #include "RandomPlayer.hpp"
+#include "HumanPlayer.hpp"
 
 #include <string.h>
 #include <iostream>
@@ -43,8 +44,7 @@ int main(int argc, char *argv[]) {
       players.push_back(getPlayer(argv[i + 2]));
     }
     else {
-      players.push_back(new RandomPlayer());
-      // players.push_back(new HumanPlayer());
+      players.push_back(new HumanPlayer());
     }
   }
 

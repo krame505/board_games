@@ -67,7 +67,7 @@ vector<RectBoardMove*> checkerCaptureMoves(RectBoard &board, loc l,
           checkerCaptureMoves(board, newLoc, offsets, owner, promoLocs, promotions);
         newMove->undoMove(board);
         for (RectBoardMove *move : moves)
-          result.push_back(new SeqMove(vector<RectBoardMove*> {newMove, move}));
+          result.push_back(new SeqMove(vector<RectBoardMove*> {newMove->clone(), move}));
       }
     }
   }

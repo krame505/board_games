@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <algorithm>
 #include <iostream>
 using namespace std;
 
@@ -65,14 +66,13 @@ public:
   RectBoard(const RectBoard &other) :
     width(other.width),
     height(other.height),
-    pieces(new Piece*[width * height]),
-    hiddenPieces(other.hiddenPieces) {
+    pieces(new Piece*[width * height]) {
     for (int i = 0; i < width * height; i++) {
       if (other.pieces[i])
         pieces[i] = other.pieces[i]->clone();
     }
-    for (Piece *&p : hiddenPieces)
-      p = p->clone();
+    for (Piece *p : other.hiddenPieces)
+      hiddenPieces.push_back(p->clone());
   }
   
   ~RectBoard() {
@@ -98,6 +98,10 @@ private: class LocIndexProxy;
 public:
   LocIndexProxy operator[](loc l) {
     return LocIndexProxy(*this, l);
+  }
+
+  const Piece *operator[](loc l) const {
+    return (*this)[l.x][l.y];
   }
 
   vector<Piece*> getPieces() const;
@@ -134,7 +138,19 @@ private:
       return board[l.x][l.y] = (Piece *)other;
     }
 
+    bool operator==(const Piece *piece) const {
+      return board[l.x][l.y] == piece;
+    }
+
+    bool operator==(const LocIndexProxy &other) const {
+      return board[l.x][l.y] == (Piece *)other;
+    }
+    
     Piece *operator->() {
+      return board[l.x][l.y];
+    }
+    
+    Piece *operator->() const {
       return board[l.x][l.y];
     }
 
@@ -182,6 +198,11 @@ public:
     board.deletePieces();
   }
 
+  // Public access to the board, but don't allow modification
+  const RectBoard &getBoard() const {
+    return board;
+  }
+
 protected:
   RectBoard board;
 
@@ -201,6 +222,7 @@ protected:
 
 private:
   ostream &write(ostream&) const;
+  vector<Move*> parseMove(string, string&) const;
   vector<Move*> genMoves();
 
   void doMove(Move *m) {
@@ -208,7 +230,7 @@ private:
   }
 
   void undoMove(Move *m) {
-    ((RectBoardMove*)m)->doMove(board);
+    ((RectBoardMove*)m)->undoMove(board);
   }
 };
 
@@ -368,10 +390,9 @@ public:
   SeqMove(vector<RectBoardMove*> moves) :
     moves(moves) {}
 
-  SeqMove(const SeqMove &other) :
-    moves(other.moves) {
-    for (RectBoardMove *&move : moves)
-      move = move->clone();
+  SeqMove(const SeqMove &other) {
+    for (RectBoardMove *move : other.moves)
+      moves.push_back(move->clone());
   }
 
   ~SeqMove() {

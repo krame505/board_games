@@ -8,7 +8,7 @@ CPPFLAGS      = -Wall -g -O0 -std=c++0x #-O3
 CFLAGS 	      = -Wall -g -O0 #-O3
 
 SOURCES += Game RectBoardGame Checkers
-SOURCES += RandomPlayer
+SOURCES += RandomPlayer HumanPlayer
 SOURCES += main
 
 CPPFILES = $(addprefix ../src/,  $(SOURCES:=.cpp))
