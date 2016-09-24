@@ -36,17 +36,24 @@ public:
 
   Game(const Game &other) :
     numPlayers(other.numPlayers),
-    turn(other.turn),
-    moves(other.moves),
-    prevMoves(other.prevMoves) {
-    for (vector<Move*> ms : moves)
-      for (Move *&m : ms)
-        m = m->clone();
-    for (Move *&m : prevMoves)
-      m = m->clone();
+    turn(other.turn) {
+    for (vector<Move*> ms : other.moves) {
+      vector<Move*> newMs;
+      for (Move *m : ms)
+        newMs.push_back(m->clone());
+      moves.push_back(newMs);
+    }
+    for (Move *m : other.prevMoves)
+      prevMoves.push_back(m->clone());
   }
 
-  virtual ~Game() {};
+  virtual ~Game() {
+    for (vector<Move*> ms : moves)
+      for (Move *m : ms)
+        delete m;
+    for (Move *m : prevMoves)
+      delete m;
+  };
 
   virtual Game *clone() const = 0;
 
