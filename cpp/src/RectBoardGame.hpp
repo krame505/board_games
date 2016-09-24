@@ -60,13 +60,13 @@ public:
   RectBoard(int width, int height) :
     width(width),
     height(height),
-    pieces(new Piece*[width * height])
-  {cout << width << ", " << height << endl;}
+    pieces(new Piece*[width * height]())
+  {}
 
   RectBoard(const RectBoard &other) :
     width(other.width),
     height(other.height),
-    pieces(new Piece*[width * height]) {
+    pieces(new Piece*[width * height]()) {
     for (int i = 0; i < width * height; i++) {
       if (other.pieces[i])
         pieces[i] = other.pieces[i]->clone();

@@ -4,14 +4,15 @@
 
 #include "RandomPlayer.hpp"
 #include "HumanPlayer.hpp"
+#include "MCTSPlayer.hpp"
 
 #include <string.h>
 #include <iostream>
 #include <vector>
 using namespace std;
 
-Game *getGame(char *name) {
-  if (!strcmp(name, "checkers"))
+Game *getGame(string name) {
+  if (name == "checkers")
     return new Checkers();
   else {
     cerr << "Invalid game " << name << endl;
@@ -20,9 +21,13 @@ Game *getGame(char *name) {
   return NULL;
 }
 
-Player *getPlayer(char *name) {
-  if (!strcmp(name, "random"))
+Player *getPlayer(string name) {
+  if (name == "random")
     return new RandomPlayer();
+  if (name == "human")
+    return new HumanPlayer();
+  if (name == "mcts")
+    return new MCTSPlayer(1000, 10, 50);
   else {
     cerr << "Invalid player " << name << endl;
     exit(1);
@@ -36,12 +41,12 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  Game *game = getGame(argv[1]);
+  Game *game = getGame(string(argv[1]));
 
   vector<Player*> players;
   for (int i = 0; i < game->numPlayers; i++) {
     if (i + 2 < argc) {
-      players.push_back(getPlayer(argv[i + 2]));
+      players.push_back(getPlayer(string(argv[i + 2])));
     }
     else {
       players.push_back(new HumanPlayer());

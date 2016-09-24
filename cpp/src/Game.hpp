@@ -111,7 +111,7 @@ public:
   virtual bool isGameOver() const = 0;
 
   // Return winner, or -1 if a draw or not won
-  virtual int getWinner() const = 0;
+  virtual PlayerId getWinner() const = 0;
 
   const int numPlayers;
 

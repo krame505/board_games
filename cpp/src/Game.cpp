@@ -13,7 +13,7 @@ ostream &operator<<(ostream &os, Move *m) {
   return m->write(os);
 }
 
-int play(Game *game, vector<Player*> players) {
+PlayerId play(Game *game, vector<Player*> players) {
   while (!game->isGameOver()) {
     cout << endl;
     cout << "Player " << game->getTurn() + 1 << "'s turn" << endl;
@@ -23,7 +23,7 @@ int play(Game *game, vector<Player*> players) {
     m->show(cout, game) << endl;
     game->move(m);
   }
-  int winner = game->getWinner();
+  PlayerId winner = game->getWinner();
   if (winner < 0)
     cout << "Draw game!" << endl;
   else

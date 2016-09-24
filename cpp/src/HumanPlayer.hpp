@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Game.hpp"
-#include "RectBoardGame.hpp"
 
 class HumanPlayer : public Player {
 public:
