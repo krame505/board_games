@@ -8,7 +8,8 @@ CPPFLAGS      = -Wall -g -O0 -std=c++0x #-O3
 CFLAGS 	      = -Wall -g -O0 #-O3
 
 SOURCES += Game RectBoardGame Checkers
-SOURCES += RandomPlayer HumanPlayer
+SOURCES += RandomPlayer HumanPlayer MCTSPlayer
+SOURCES += MCTS
 SOURCES += main
 
 CPPFILES = $(addprefix ../src/,  $(SOURCES:=.cpp))
@@ -16,7 +17,7 @@ OBJFILES = $(addprefix ../bin/,  $(SOURCES:=.o))
 EXEFILES = $(addprefix ../bin/,  $(EXECUTABLES))
 
 #Libraries to include
-LINK_LIBS += -lpthread
+LINK_LIBS += -pthread
 
 all: $(CPPFILES) $(OBJFILES) $(EXEFILES)
 
