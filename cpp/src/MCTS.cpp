@@ -4,11 +4,12 @@
 
 #include <cmath>
 #include <vector>
-#include <queue>
+//#include <queue>
 #include <cassert>
 #include <iostream>
 #include <thread>
 #include <future>
+#include <chrono>
 using namespace std;
 
 GameTree *GameTree::select(Game *game) {
@@ -17,6 +18,9 @@ GameTree *GameTree::select(Game *game) {
   GameTree *optNode = NULL;
 
   trials++;
+
+  if (game->isGameOver())
+    return this;
 
   for (unsigned i = 0; i < children.size(); i++) {
     if (children[i] == NULL) {
@@ -55,10 +59,12 @@ void GameTree::update(vector<unsigned> newWins, unsigned numTrials) {
     parent->update(newWins, numTrials);
 }
 
+
 vector<double> GameTree::getScores() const {
   vector<double> result;
-  for (unsigned w : wins)
+  for (unsigned w : wins) {
     result.push_back(w / (double)finished_trials);
+  }
   return result;
 }
 
@@ -75,12 +81,13 @@ double GameTree::ucb1() const {
 
 PlayerId playout(Game *game) {
   RandomPlayer p;
-  while (!game->isGameOver()) {
+  for (int i = 0; i < 10000; i++) {
+    if (game->isGameOver())
+      return game->getWinner();
     Move *m = p.getMove(game);
     game->move(m);
   }
-  PlayerId result = game->getWinner();
-  return result;
+  return -1; // Assume a draw after 10000 moves
 }
 
 vector<unsigned> playouts(Game *game, unsigned n) {
@@ -110,27 +117,31 @@ GameTree *buildTree(Game *game, unsigned long trials) {
 
 GameTree *buildTree(Game *game, unsigned long trials, unsigned leafParallel, unsigned treeParallel) {
   GameTree *tree = new GameTree(game, NULL);
-  queue<Game*> cloneGames;
-  queue<GameTree*> leaves;
-  queue<future<vector<unsigned>>> results;
+  vector<Game*> cloneGames;
+  vector<GameTree*> leaves;
+  vector<future<vector<unsigned>>> results;
   unsigned long i = 0;
   while (i < trials || results.size() > 0) {
     if (i < trials) {
-      cout << "Launching trial " << i << endl;
+      //cout << "Launching trial " << i << endl;
       Game *cloneGame = game->clone();
-      cloneGames.push(cloneGame);
-      leaves.push(tree->select(cloneGame));
-      results.push(async(launch::async, playouts, cloneGame, leafParallel));
+      cloneGames.push_back(cloneGame);
+      leaves.push_back(tree->select(cloneGame));
+      results.push_back(async(launch::async, playouts, cloneGame, leafParallel));
       i++;
     }
-    if (results.size() > treeParallel || i >= trials) {
-      cout << "Joining" << endl;
-      leaves.front()->update(results.front().get(), treeParallel);
-      delete cloneGames.front();
-      cloneGames.pop();
-      leaves.pop();
-      results.pop();
-    }
+    do {
+      for (unsigned j = 0; j < results.size(); j++) {
+        if (results[j].wait_for(chrono::seconds(0)) == future_status::ready) {
+          //cout << "Joining " << j << endl;
+          leaves[j]->update(results[j].get(), leafParallel);
+          delete cloneGames[j];
+          cloneGames.erase(cloneGames.begin() + j);
+          leaves.erase(leaves.begin() + j);
+          results.erase(results.begin() + j);
+        }
+      }
+    } while (results.size() > treeParallel || (i >= trials && results.size() > 0));
   }
   return tree;
 }

@@ -27,7 +27,7 @@ Player *getPlayer(string name) {
   if (name == "human")
     return new HumanPlayer();
   if (name == "mcts")
-    return new MCTSPlayer(1000, 10, 50);
+    return new MCTSPlayer(1000, 4, 7);
   else {
     cerr << "Invalid player " << name << endl;
     exit(1);
