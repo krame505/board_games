@@ -12,7 +12,7 @@
 #include <chrono>
 using namespace std;
 
-GameTree *GameTree::select(Game *game) {
+GameTree *GameTree::select(Game *game, int depth) {
   double optScore = -1;
   Move *optMove = NULL;
   GameTree *optNode = NULL;
@@ -26,7 +26,19 @@ GameTree *GameTree::select(Game *game) {
     if (children[i] == NULL) {
       game->move(moves[i]);
       children[i] = new GameTree(game, this);
-      return children[i];
+      
+      GameTree *tree = children[i];
+      RandomPlayer p;
+      while (depth > 0) {
+        if (game->isGameOver())
+          return tree;
+        Move *m = p.getMove(game);
+        game->move(m);
+        tree = new GameTree(game, tree);
+        depth--;
+      }
+
+      return tree;
     }
     else {
       double score = children[i]->ucb1();
@@ -39,7 +51,7 @@ GameTree *GameTree::select(Game *game) {
   }
   
   game->move(optMove);
-  return optNode->select(game);
+  return optNode->select(game, depth - 1);
 }
 
 void GameTree::update(PlayerId winner) {
@@ -102,12 +114,12 @@ vector<unsigned> playouts(Game *game, unsigned n) {
   return wins;
 }
 
-GameTree *buildTree(Game *game, unsigned long trials) {
+GameTree *buildTree(Game *game, unsigned long trials, int depth) {
   GameTree *tree = new GameTree(game, NULL);
   for (unsigned long i = 0; i < trials; i++) {
     //cout << "Trial " << i << endl;
     Game *cloneGame = game->clone();
-    GameTree *leaf = tree->select(cloneGame);
+    GameTree *leaf = tree->select(cloneGame, depth);
     PlayerId result = playout(cloneGame);
     leaf->update(result);
     delete cloneGame;
@@ -115,7 +127,7 @@ GameTree *buildTree(Game *game, unsigned long trials) {
   return tree;
 }
 
-GameTree *buildTree(Game *game, unsigned long trials, unsigned leafParallel, unsigned treeParallel) {
+GameTree *buildTree(Game *game, unsigned long trials, unsigned leafParallel, unsigned treeParallel, int depth) {
   GameTree *tree = new GameTree(game, NULL);
   vector<Game*> cloneGames;
   vector<GameTree*> leaves;
@@ -126,7 +138,7 @@ GameTree *buildTree(Game *game, unsigned long trials, unsigned leafParallel, uns
       //cout << "Launching trial " << i << endl;
       Game *cloneGame = game->clone();
       cloneGames.push_back(cloneGame);
-      leaves.push_back(tree->select(cloneGame));
+      leaves.push_back(tree->select(cloneGame, depth));
       results.push_back(async(launch::async, playouts, cloneGame, leafParallel));
       i++;
     }

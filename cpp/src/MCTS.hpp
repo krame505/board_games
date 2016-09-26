@@ -39,7 +39,8 @@ public:
   double ucb1() const;
 
   // Select a node for which to perform a playout and advance the game to that state
-  GameTree *select(Game*);
+  // Build up the tree initially to given depth
+  GameTree *select(Game*, int);
   
   // Update the entire tree with the playout results
   void update(PlayerId);
@@ -62,6 +63,7 @@ PlayerId playout(Game*);
 // Perform n random playouts of a game
 vector<unsigned> playouts(Game*, unsigned);
 
-// Build a tree with the specified number of trials and (optional) degree of parallelism
-GameTree *buildTree(Game*, unsigned long trials);
-GameTree *buildTree(Game*, unsigned long trials, unsigned leafParallel, unsigned treeParallel);
+// Build a tree with the specified number of trials, initial depth, and (optional)
+// degrees of parallelism
+GameTree *buildTree(Game*, unsigned long trials, int depth);
+GameTree *buildTree(Game*, unsigned long trials, unsigned leafParallel, unsigned treeParallel, int depth);

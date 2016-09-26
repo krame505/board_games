@@ -7,9 +7,9 @@
 Move *MCTSPlayer::getMove(Game *game) const {
   GameTree *tree;
   if (leafParallel || treeParallel)
-    tree = buildTree(game, trials, leafParallel, treeParallel);
+    tree = buildTree(game, trials, leafParallel, treeParallel, depth);
   else
-    tree = buildTree(game, trials);
+    tree = buildTree(game, trials, depth);
 
   double maxScore = -1;
   Move *optMove = NULL;
