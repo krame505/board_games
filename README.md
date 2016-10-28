@@ -1,7 +1,7 @@
 # board_games
 A python framework for chess/checkers-style board game AIs
 
-## Installation
+## Python Installation
 The termcolor library is used for displaying the board, it can be installed with
 ```
 pip3 install termcolors
